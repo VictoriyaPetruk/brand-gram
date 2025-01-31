@@ -1,7 +1,7 @@
 "use client";
 import InstagramProfileCard from "@/components/ui/InstagramProfileCard";
 import AnimatedShinyText from "@/components/ui/animated-shiny-text";
-export default function AnalyticsPage({ searchParams }: { searchParams: { account: string } }) {
+export default function AnalyticsPage() {
   // const accountName = searchParams.account; // Retrieve the dynamic account name from the query
   const accountName = "name"; // Get the dynamic account name from the query
   const imageUrl = "https://via.placeholder.com/150"; // Replace with actual profile image URL

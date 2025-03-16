@@ -7,7 +7,7 @@ import { MessageSquare } from "lucide-react";
 import { mockData } from "./data.mock";
 
 type AnalyticsPageProps = {
-  params: { accountName: string };
+  params: Promise<{ accountName: string }>;
 };
 
 export default function AnalyticsPage({ params }: AnalyticsPageProps) {

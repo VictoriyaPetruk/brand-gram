@@ -13,36 +13,30 @@ export default function DashboardPage({ params }: PageProps) {
   const [generatedImages, setGeneratedImages] = useState<string[] | null>(null);
   const resolvedParams = use(params);
   useEffect(() => {
-    const token = process.env.Pexeles_Token;
-    const getPexelsImage =  async (page = 1, number = 0) => {
-        const url = `https://api.pexels.com/v1/search?query=${resolvedParams.hashtag}&per_page=10&page=${page}`;
-      
-        try {
-          const response = await fetch(url, {
-            headers: {
-              Authorization: token || "",
-            },
-          });
-      
-          if (response.ok) {
-            const data = await response.json();
-            // setGeneratedImages(data?.data?.map((image: any) => image.url))
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any 
-            setGeneratedImages(data?.photos.map((image: any) => image.src.original));
-            console.log(data);
-            return data.photos[number]?.src?.medium || null;
-          } else {
-            console.error(`Pexels API error: ${response.status}`);
-            return null;
-          }
-        } catch (error) {
-          console.error('Error fetching from Pexels:', error);
-          return null;
-        }
+    const getPexelsImage =  async () => {
+      try {
+        const response = await fetch("/api/pexels", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            hashtag: resolvedParams.hashtag,
+            page: 1
+          }),
+        });
+  
+        if (!response.ok) throw new Error("Failed to fetch images");
+        const data = await response.json();
+  
+        setGeneratedImages(data?.photos?.map((image: any) => image.src.original));
+      } catch (error) {
+        console.error("Error fetching from local API:", error);
       }
-
+    };
+  
     if (resolvedParams.accountName) {
-        getPexelsImage();
+      getPexelsImage();
     }
   }, [resolvedParams.accountName]);
 

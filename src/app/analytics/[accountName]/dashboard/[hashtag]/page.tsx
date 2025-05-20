@@ -28,7 +28,7 @@ export default function DashboardPage({ params }: PageProps) {
   
         if (!response.ok) throw new Error("Failed to fetch images");
         const data = await response.json();
-  
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any 
         setGeneratedImages(data?.photos?.map((image: any) => image.src.original));
       } catch (error) {
         console.error("Error fetching from local API:", error);

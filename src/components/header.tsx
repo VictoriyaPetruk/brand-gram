@@ -16,7 +16,7 @@ const Header = () => {
             className="mr-4"
           />
         </Link>
-        <h1 className="text-white text-xl font-bold">BrandGram Gpt</h1>
+        <h1 className="text-white text-xl font-bold">BrandGram+Gpt</h1>
       </div>
       {/* Navigation (optional) */}
       <nav>

@@ -1,14 +1,14 @@
 'use client';
 
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import 'keen-slider/keen-slider.min.css';
-import Image from 'next/image';
-import { useEffect, useState } from 'react';
+// import LoadingSpinner from '@/components/ui/LoadingSpinner';
+// import 'keen-slider/keen-slider.min.css';
+// import Image from 'next/image';
+// import { useEffect, useState } from 'react';
 
-type ContentSliderProps = {
-  accountName: string;
-  jsonContent: string;
-};
+// type ContentSliderProps = {
+//   accountName: string;
+//   jsonContent: string;
+// };
 
 // export const ContentSlider = ({ accountName, jsonContent }: ContentSliderProps) => {
 //   const [generatedImages, setGeneratedImages] = useState<string[] | null>(null);

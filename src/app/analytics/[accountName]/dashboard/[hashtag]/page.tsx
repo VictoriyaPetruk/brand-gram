@@ -27,6 +27,7 @@ export default function DashboardPage({ params }: PageProps) {
           if (response.ok) {
             const data = await response.json();
             // setGeneratedImages(data?.data?.map((image: any) => image.url))
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any 
             setGeneratedImages(data?.photos.map((image: any) => image.src.original));
             console.log(data);
             return data.photos[number]?.src?.medium || null;

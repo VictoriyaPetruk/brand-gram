@@ -6,12 +6,24 @@ interface InstagramProfileCardProps {
   imageUrl: string;
   accountName: string;
   description: string;
+  followers: number;
+  followings: number;
+  mediaCount: number;
+  avgLikes: number;
+  averageEngagementRate: number;
+  averageCommentsPerPost: number;
 }
 
 const InstagramProfileCard: React.FC<InstagramProfileCardProps> = ({
   imageUrl,
   accountName,
   description,
+  followers, 
+  followings,
+  mediaCount,
+  avgLikes,
+  averageEngagementRate,
+  averageCommentsPerPost
 }) => {
   return (
     <div className='flex flex-col items-center'>
@@ -40,31 +52,31 @@ const InstagramProfileCard: React.FC<InstagramProfileCardProps> = ({
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-1'>
                 <p className='text-muted-foreground'>Followers</p>
-                <p className='text-2xl font-semibold'>531</p>
+                <p className='text-2xl font-semibold'>{followers}</p>
               </div>
               <div className='space-y-1'>
                 <p className='text-muted-foreground'>Following</p>
-                <p className='text-2xl font-semibold'>103</p>
+                <p className='text-2xl font-semibold'>{followings}</p>
               </div>
             </div>
             <div className='space-y-2'>
               <div className='flex justify-between'>
                 <span className='text-muted-foreground'>Total Posts</span>
-                <span className='font-medium'>48</span>
+                <span className='font-medium'>{mediaCount}</span>
               </div>
               <div className='flex justify-between'>
                 <span className='text-muted-foreground'>Average ER</span>
-                <span className='font-medium'>2.8%</span>
+                <span className='font-medium'>{averageEngagementRate}%</span>
               </div>
               <div className='flex justify-between'>
                 <span className='text-muted-foreground'>
                   Avg. Likes per Post
                 </span>
-                <span className='font-medium'>~15</span>
+                <span className='font-medium'>~{avgLikes}</span>
               </div>
               <div className='flex justify-between'>
-                <span className='text-muted-foreground'>Estimated Reach</span>
-                <span className='font-medium'>53-80 views</span>
+                <span className='text-muted-foreground'>Average Comments per Post</span>
+                <span className='font-medium'>{averageCommentsPerPost}</span>
               </div>
             </div>
           </div>

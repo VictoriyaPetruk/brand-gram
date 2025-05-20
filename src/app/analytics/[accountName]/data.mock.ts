@@ -28,3 +28,64 @@ export const mockData = {
   description: "Specialty coffee | Jedzenie | Bar | Cukiernia",
   analyticsDescription: "This is a description for the analytics data.",
 };
+
+export interface MediaItem {
+  id: string;
+  like_count: number;
+  media_type: string;
+  comments_count: number,
+  caption: string;
+}
+
+export interface MediaData {
+  data: MediaItem[];
+  paging: {
+    cursors: {
+      after: string;
+    };
+  };
+}
+
+export interface BusinessDiscovery {
+  username: string;
+  website: string;
+  name: string;
+  ig_id: string;
+  id: string;
+  profile_picture_url: string;
+  biography: string;
+  follows_count: number;
+  followers_count: number;
+  media_count: number;
+  media: MediaData;
+}
+
+export interface GptAnalytics {
+  BrandValue: number;
+  Description: string;
+  FunFact: string;
+  MainAudience: string;
+  AverageEngagementRate: number;
+  AveragePostLikes: number;
+  AveragePostComments: number;
+  ContentStyle: string;
+  Formats: string;
+  Hashtag: string;
+  Conclusion: string;
+  PostsIdeas: string[];
+  MarketingStrategy: string[];
+}
+
+export interface PromtModel {
+  Username: string;
+  Name: string;
+  Follows_count: number;
+  Followers_count: number;
+  Description: string;
+  FunFact: string;
+  MainAudience: string;
+  AverageEngagementRate: number;
+  AveragePostLikes: number;
+  AveragePostComments: number;
+  ContentStyle: string;
+}

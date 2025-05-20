@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"; // Import useRouter
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MarqueeDemo } from "./reviewcard";
+import { NavigateOptions } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export default function MainPage() {
   const [accountName, setAccountName] = useState("");
@@ -17,12 +18,20 @@ export default function MainPage() {
 
     // Show loading screen
     setLoading(true);
-
-    // Simulate API call with a delay
-    setTimeout(() => {
-      // Redirect to the analytics page with the account name as a query parameter
+     
+    try {
+      // Call AWS Lambda API
+     
+     // router.push(`/analytics/${accountName}`);
+      // const queryString = `?data=${encodeURIComponent(JSON.stringify(data))}`;
+      // router.push(`/analytics/${accountName}?query=${queryString}`);
       router.push(`/analytics/${accountName}`);
-    }, 2000); // Simulated 2-second delay
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      alert("Failed to fetch analytics. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,7 +53,7 @@ export default function MainPage() {
 
         <Button
           onClick={handleSearch}
-          className='w-full bg-black text-white py-2 rounded-md hover:bg-blue-600'
+          className='w-full bg-black text-white py-2 rounded-md hover:bg-purple-600'
           disabled={loading}
         >
           {loading ? "Loading..." : "Analyze"}

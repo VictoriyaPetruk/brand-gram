@@ -3,42 +3,43 @@ import Marquee from "@/components/ui/marquee";
 
 const reviews = [
   {
-    name: "Jack",
-    username: "@jack",
-    body: "I've never seen anything like this before. It's amazing. I love it.",
-    img: "https://avatar.vercel.sh/jack",
+    name: "Flowers Shop LA",
+    username: "@flowersla",
+    body: "It helped us understand our target niche better. Simple and super insightful.",
+    img: "/shop1.png",
   },
   {
-    name: "Jill",
-    username: "@jill",
-    body: "I don't know what to say. I'm speechless. This is amazing.",
-    img: "https://avatar.vercel.sh/jill",
+    name: "Vibe Coffee PL",
+    username: "@vibecoffee",
+    body: "We used it mostly for fun at first — now it’s part of our weekly content plan.",
+    img: "/coffee1.png",
   },
   {
-    name: "John",
-    username: "@john",
-    body: "I'm at a loss for words. This is amazing. I love it.",
-    img: "https://avatar.vercel.sh/john",
+    name: "Studio Nova Design",
+    username: "@studionova",
+    body: "It gave us a fresh angle on what kind of content actually hits with our followers.",
+    img: "/studio1.png",
   },
   {
-    name: "Jane",
-    username: "@jane",
-    body: "I'm at a loss for words. This is amazing. I love it.",
-    img: "https://avatar.vercel.sh/jane",
+    name: "Bark & Meow Pets",
+    username: "@barkmeow",
+    body: "Honestly didn’t expect it to work this well. We found a new audience segment.",
+    img: "/pets1.png",
   },
   {
-    name: "Jenny",
-    username: "@jenny",
-    body: "I'm at a loss for words. This is amazing. I love it.",
-    img: "https://avatar.vercel.sh/jenny",
+    name: "Slow Living Decor",
+    username: "@slowliving",
+    body: "Super aesthetic + practical. Helped us plan reels that actually get views.",
+    img: "https://avatar.vercel.sh/slowliving",
   },
   {
-    name: "James",
-    username: "@james",
-    body: "I'm at a loss for words. This is amazing. I love it.",
-    img: "https://avatar.vercel.sh/james",
+    name: "Tech Mates App",
+    username: "@techmates",
+    body: "We were just testing it — now our whole content flow runs on it. Game changer.",
+    img: "https://avatar.vercel.sh/techmates",
   },
 ];
+
 
 const firstRow = reviews.slice(0, reviews.length / 2);
 const secondRow = reviews.slice(reviews.length / 2);

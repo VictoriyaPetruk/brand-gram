@@ -4,7 +4,7 @@ import InstagramProfileCard from "@/components/ui/InstagramProfileCard";
 import AnimatedShinyText from "@/components/ui/animated-shiny-text";
 import { AnalyticsCard } from "./analytics-card";
 import { MessageSquare } from "lucide-react";
-import { GptAnalytics, PromtModel, mockData } from "./data.mock";
+import { GptAnalytics, PromtModel } from "./data.mock";
 import { BusinessDiscovery } from "./data.mock";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useRouter } from "next/navigation";

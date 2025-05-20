@@ -20,14 +20,6 @@ export const response = {
     total_tokens: 579,
   },
 };
-export const mockData = {
-  name: "Culture Cafe",
-  imageUrl:
-    "https://scontent-waw2-2.cdninstagram.com/v/t51.2885-19/432712095_1119960119314418_8708717564381313064_n.jpg?stp=dst-jpg_s320x320_tt6&_nc_ht=scontent-waw2-2.cdninstagram.com&_nc_cat=102&_nc_oc=Q6cZ2AF83utF8zPBhsfntKbEKF7O3ugKYCC_l4ZaCEZA0ircluIFoLm0Xx1KYNh7Sgt4Avc&_nc_ohc=wiy-OR_dJo8Q7kNvgE8a1ER&_nc_gid=57b404dd254747ecb64ef4170a2cf060&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AYBRVr32JD2vmNPmqYUj3VQqoYjb-wjyVseUZwgZ4x7Xfw&oe=67AD130C&_nc_sid=8b3546",
-  score: 75,
-  description: "Specialty coffee | Jedzenie | Bar | Cukiernia",
-  analyticsDescription: "This is a description for the analytics data.",
-};
 
 export interface MediaItem {
   id: string;

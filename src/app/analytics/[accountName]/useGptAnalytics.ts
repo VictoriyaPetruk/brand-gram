@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { GptAnalytics } from "./data.mock";
 
 const useGptAnalytics = async (jsonContent: string): Promise<GptAnalytics | null> => {

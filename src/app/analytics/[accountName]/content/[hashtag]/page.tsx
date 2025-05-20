@@ -1,6 +1,5 @@
 'use client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import Image from 'next/image';
 import { use, useEffect, useState } from 'react';
 
 const mockTemplates = [

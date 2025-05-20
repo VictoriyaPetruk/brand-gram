@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"; // Import useRouter
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MarqueeDemo } from "./reviewcard";
-import { NavigateOptions } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export default function MainPage() {
   const [accountName, setAccountName] = useState("");

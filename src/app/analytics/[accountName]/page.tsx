@@ -9,7 +9,6 @@ import { BusinessDiscovery } from "./data.mock";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import useGptAnalytics from "./useGptAnalytics";
-import { ContentSlider } from "./content-slider";
 import Header from "@/components/header";
 import generatePrompt from "./generatePrompt";
 

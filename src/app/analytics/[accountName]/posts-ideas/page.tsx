@@ -14,9 +14,9 @@ type AnalyticsPageProps = {
   useEffect(() => {
     if (!resolvedParams.accountName) return;
 
-    var posts = localStorage.getItem("posts");
+    let posts = localStorage.getItem("posts");
     if (posts != null){
-        var json = JSON.parse(posts);
+        let json = JSON.parse(posts);
         console.log(json);
         setIdeas(json);
         setLoading(false);

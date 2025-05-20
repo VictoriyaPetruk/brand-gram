@@ -1,7 +1,5 @@
 'use client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import 'keen-slider/keen-slider.min.css';
-import { useKeenSlider } from 'keen-slider/react';
 import Image from 'next/image';
 import { use, useEffect, useState } from 'react';
 
@@ -29,11 +27,11 @@ export default function ContentPage({ params }: AnalyticsPageProps) {
   const [generatedImages, setGeneratedImages] = useState<string[] | null>(null);
   const [loadingImage, setLoadingImage] = useState(true);
   const resolvedParams = use(params);
-  const [sliderRef, sliderInstanceRef] = useKeenSlider<HTMLDivElement>({
-    loop: true,
-    mode: 'snap',
-    slides: { perView: 1, spacing: 15 },
-  });
+  // const [sliderRef, sliderInstanceRef] = useKeenSlider<HTMLDivElement>({
+  //   loop: true,
+  //   mode: 'snap',
+  //   slides: { perView: 1, spacing: 15 },
+  // });
 
   useEffect(() => {
 
@@ -92,7 +90,7 @@ export default function ContentPage({ params }: AnalyticsPageProps) {
     <div className="min-h-screen bg-gray-100 flex flex-col items-center py-12 px-4">
       <h1 className="text-3xl font-bold mb-8">📸 Content Ideas</h1>
 
-      <div ref={sliderRef} className="keen-slider w-full max-w-xl">
+      {/* <div ref={sliderRef} className="keen-slider w-full max-w-xl">
         {generatedImages.map((imageUrl, index) => (
             <div className="keen-slider__slide flex flex-col items-center" key={index}>
                 <Image
@@ -105,10 +103,10 @@ export default function ContentPage({ params }: AnalyticsPageProps) {
                 <p className="text-center text-gray-700 text-lg px-4">{mockTemplates[index]?.description}</p>
             </div>
             ))}
-      </div>
+      </div> */}
 
       {/* Slider Buttons */}
-      <div className="mt-6 flex gap-4">
+      {/* <div className="mt-6 flex gap-4">
         <button
           onClick={() => sliderInstanceRef.current?.prev()}
           className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
@@ -121,7 +119,7 @@ export default function ContentPage({ params }: AnalyticsPageProps) {
         >
           Next ➡️
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

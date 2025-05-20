@@ -11,7 +11,6 @@ type PageProps = {
 
 export default function DashboardPage({ params }: PageProps) {
   const [generatedImages, setGeneratedImages] = useState<string[] | null>(null);
-  const [loadingImage, setLoadingImage] = useState(true);
   const resolvedParams = use(params);
   useEffect(() => {
     const token = process.env.Pexeles_Token;

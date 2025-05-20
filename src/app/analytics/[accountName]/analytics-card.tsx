@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { response } from "./data.mock";
 import { GptAnalytics } from "./data.mock";
 
 interface AnalyticsCardProps {

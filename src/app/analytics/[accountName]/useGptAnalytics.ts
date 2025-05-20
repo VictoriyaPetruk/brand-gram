@@ -1,6 +1,6 @@
 import { GptAnalytics } from "./data.mock";
 
-const useGptAnalytics = async (jsonContent: string): Promise<GptAnalytics | null> => {
+const UseGptAnalytics = async (jsonContent: string): Promise<GptAnalytics | null> => {
       const token = process.env.MY_SECRET_TOKEN;
       const prompt = `
         Provide Instagram page statistics in json string format according to the template: 
@@ -52,4 +52,4 @@ const useGptAnalytics = async (jsonContent: string): Promise<GptAnalytics | null
       }
 };
 
-export default useGptAnalytics;
+export default UseGptAnalytics;

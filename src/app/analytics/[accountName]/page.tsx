@@ -8,7 +8,7 @@ import { GptAnalytics, PromtModel, mockData } from "./data.mock";
 import { BusinessDiscovery } from "./data.mock";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useRouter } from "next/navigation";
-import useGptAnalytics from "./useGptAnalytics";
+import UseGptAnalytics from "./useGptAnalytics";
 import Header from "@/components/header";
 import generatePrompt from "./generatePrompt";
 
@@ -26,7 +26,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   const [gptRef, setGptRef] = useState("https://chat.openai.com/?model=text-davinci-002-render-sha&prompt=");
 
   const router = useRouter();
-  const [showContentSlider, setShowContentSlider] = useState(false); 
+  // const [showContentSlider, setShowContentSlider] = useState(false); 
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -52,7 +52,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
           setIsModelValid(false);
         }
         else {
-          const analytics = await useGptAnalytics(JSON.stringify(data.business_discovery));
+          const analytics = await UseGptAnalytics(JSON.stringify(data.business_discovery));
           if(analytics == null  || analytics == undefined){
             setMessage("The Chat Gpt is not responding. Reload the page several times");
             setIsModelValid(false);

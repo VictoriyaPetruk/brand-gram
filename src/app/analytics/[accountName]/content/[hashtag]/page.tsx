@@ -2,29 +2,29 @@
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { use, useEffect, useState } from 'react';
 
-const mockTemplates = [
-  {
-    id: 1,
-    image: '/violetLogo_w.png',
-    description: 'Use this layout to highlight product features in a clean format.',
-  },
-  {
-    id: 2,
-    image: '/violetLogo_w.png',
-    description: 'Perfect for storytelling — great engagement with longer captions.',
-  },
-  {
-    id: 3,
-    image: '/violetLogo_w.png',
-    description: 'High-contrast, bold vibe for attention-grabbing announcements.',
-  },
-];
+// const mockTemplates = [
+//   {
+//     id: 1,
+//     image: '/violetLogo_w.png',
+//     description: 'Use this layout to highlight product features in a clean format.',
+//   },
+//   {
+//     id: 2,
+//     image: '/violetLogo_w.png',
+//     description: 'Perfect for storytelling — great engagement with longer captions.',
+//   },
+//   {
+//     id: 3,
+//     image: '/violetLogo_w.png',
+//     description: 'High-contrast, bold vibe for attention-grabbing announcements.',
+//   },
+// ];
 type AnalyticsPageProps = {
   params: Promise<{ accountName: string, hashtag: string}>;
 };
 export default function ContentPage({ params }: AnalyticsPageProps) {
   const [generatedImages, setGeneratedImages] = useState<string[] | null>(null);
-  const [loadingImage, setLoadingImage] = useState(true);
+  // const [loadingImage, setLoadingImage] = useState(true);
   const resolvedParams = use(params);
   // const [sliderRef, sliderInstanceRef] = useKeenSlider<HTMLDivElement>({
   //   loop: true,
@@ -66,24 +66,6 @@ export default function ContentPage({ params }: AnalyticsPageProps) {
   }, [resolvedParams.accountName]);
 
   if (generatedImages == null || generatedImages == undefined) return <LoadingSpinner />;
-
-  const mockTemplates = [
-    {
-      id: 1,
-      image: '/violetLogo_w.png',
-      description: 'Use this layout to highlight product features in a clean format.',
-    },
-    {
-      id: 2,
-      image: '/violetLogo_w.png',
-      description: 'Perfect for storytelling — great engagement with longer captions.',
-    },
-    {
-      id: 3,
-      image: '/violetLogo_w.png',
-      description: 'High-contrast, bold vibe for attention-grabbing announcements.',
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center py-12 px-4">

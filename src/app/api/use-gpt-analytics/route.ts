@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.MY_SECRET_TOKEN}`
+      Authorization: `Bearer ${process.env.GPT_TOKEN}`
     },
     body: JSON.stringify(body)
   });

@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const Header = () => {
   return (
-    <header className="bg-black p-4 flex items-center justify-between">
+    <header className="bg-black p-4 flex items-center justify-between gap-4">
       <div className="flex items-center">
         {/* Logo */}
         <Link href="/" passHref>
@@ -23,8 +23,8 @@ const Header = () => {
         <ul className="flex space-x-4 items-center">
           <li>
             <Link href="/create">
-              <span className="px-4 py-1 rounded-full border border-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-500 text-transparent bg-clip-text border-current animate-pulse hover:opacity-90 transition-all duration-600">
-                Create Website
+              <span className="rounded-full border border-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-500 text-transparent bg-clip-text border-current animate-pulse hover:opacity-90 transition-all duration-600">
+                Create website
               </span>
             </Link>
           </li>

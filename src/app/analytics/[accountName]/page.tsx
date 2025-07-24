@@ -4,14 +4,14 @@ import InstagramProfileCard from "@/components/ui/InstagramProfileCard";
 import AnimatedShinyText from "@/components/ui/animated-shiny-text";
 import { AnalyticsCard } from "./analytics-card";
 import { MessageSquare } from "lucide-react";
-import { GptAnalytics, PromtResponseModel, WebSiteModelBlog, InstagramRequestGpt, MediaRequestData, MediaRequestItem, SlideFlow, mapBusinessDiscoveryToRequestGpt } from "./data.mock";
+import { GptAnalytics, SlideFlow, mapBusinessDiscoveryToRequestGpt } from "./data.mock";
 import { BusinessDiscovery } from "./data.mock";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import UseGptAnalytics from "./useGptAnalytics";
 import Header from "@/components/header";
-import generatePrompt from "./generatePrompt";
-import UseGptSlides from "./useGptSlides";
+// import generatePrompt from "./generatePrompt";
+// import UseGptSlides from "./useGptSlides";
 
 type AnalyticsPageProps = {
   params: Promise<{ accountName: string }>;
@@ -20,12 +20,12 @@ type AnalyticsPageProps = {
 export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   const [Igdata, setIgData] = useState<BusinessDiscovery | null>(null);
   const [gptData, setGptData] = useState<GptAnalytics | null>(null);
-  const [slides, setSlides] = useState<SlideFlow[] | null>(null);
+  // const [slides, setSlides] = useState<SlideFlow[] | null>(null);
   const resolvedParams = use(params);
   const [loading, setLoading] = useState(true);
   const [isModelValid, setIsModelValid] = useState(true);
   const [Message, setMessage] = useState("");
-  const [gptRef, setGptRef] = useState("https://chat.openai.com/?model=text-davinci-002-render-sha&prompt=");
+  // const [gptRef, setGptRef] = useState("https://chat.openai.com/?model=text-davinci-002-render-sha&prompt=");
 
   const router = useRouter();
   // const [showContentSlider, setShowContentSlider] = useState(false); 

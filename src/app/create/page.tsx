@@ -47,7 +47,7 @@ export default function UsernameInputPage() {
       // Redirect to flow
       router.push(`/analytics/${username}/flow`);
     } catch (e) {
-      setError("Failed to load account data. Please try again.");
+      setError(`Failed to load account data. Please try again.${e}`);
     } finally {
       setLoading(false);
     }

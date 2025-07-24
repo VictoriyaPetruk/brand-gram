@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BusinessDiscovery, LinkItem, mapBusinessDiscoveryToRequestGpt, MediaItem, SlideFlow, WebSiteModelBlog, WebSiteResponseGpt } from "../data.mock";
+import { BusinessDiscovery, LinkItem, mapBusinessDiscoveryToRequestGpt, MediaItem, SlideFlow, WebSiteResponseGpt } from "../data.mock";
 import UseGptSlides from "../useGptSlides";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import PublishPopup from "./popup";
@@ -85,7 +85,7 @@ export default function ProfilePage({ params }: PageProps) {
   shadow-md ${shadowHoverColor} hover:scale-105 transform transition text-lg`;
   const gradientClass = `bg-gradient-to-r from-${color}-50 to-${color}-100 p-6 rounded-xl shadow-lg text-base text-gray-800 mb-8 max-w-3xl w-full`;
   const btnClass = `mt-10 bg-${color}-600 hover:bg-${color}-700 hover:shadow-lg hover:shadow-${color}-500 transition text-white font-semibold py-4 px-8 rounded-full max-w-3xl w-full text-xl`;
-  const picClass = `text-${color}-600 font-medium mt-2 inline-block hover:text-${color}-500 hover:underline transition-colors duration-300`;
+  // const picClass = `text-${color}-600 font-medium mt-2 inline-block hover:text-${color}-500 hover:underline transition-colors duration-300`;
   const picCoverClass = `rounded-xl w-full md:w-1/2 object-cover max-h-96 shadow-md ${shadowHoverColor} transition-shadow duration-300`;
   
   

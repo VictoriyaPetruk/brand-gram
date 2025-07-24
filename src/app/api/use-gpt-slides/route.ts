@@ -1,7 +1,7 @@
 // app/api/use-gpt-analytics/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { SlideFlow, WebSiteResponseGpt } from "../../analytics/[accountName]/data.mock";
+import { WebSiteResponseGpt } from "../../analytics/[accountName]/data.mock";
 
 export async function POST(req: NextRequest) {
   const { jsonContent } = await req.json();

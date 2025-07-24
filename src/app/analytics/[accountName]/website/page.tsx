@@ -54,7 +54,7 @@ export default function ProfilePage({ params }: PageProps) {
             }
           }
           setIgData(JSON.parse(igData));
-          let modelRequest = mapBusinessDiscoveryToRequestGpt(JSON.parse(igData));
+          const modelRequest = mapBusinessDiscoveryToRequestGpt(JSON.parse(igData));
           const websiteModel =  await UseGptSlides(JSON.stringify(modelRequest));
   
           if(websiteModel != null){

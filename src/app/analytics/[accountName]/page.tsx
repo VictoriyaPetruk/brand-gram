@@ -57,7 +57,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
         }
         else {
           localStorage.setItem(resolvedParams.accountName + "-igdata", JSON.stringify(data.business_discovery));
-          let modelRequest = mapBusinessDiscoveryToRequestGpt(data.business_discovery);
+          const modelRequest = mapBusinessDiscoveryToRequestGpt(data.business_discovery);
   
           const analytics = await UseGptAnalytics(JSON.stringify(modelRequest));
           if(analytics == null  || analytics == undefined){

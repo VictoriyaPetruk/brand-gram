@@ -4,13 +4,14 @@ import InstagramProfileCard from "@/components/ui/InstagramProfileCard";
 import AnimatedShinyText from "@/components/ui/animated-shiny-text";
 import { AnalyticsCard } from "./analytics-card";
 import { MessageSquare } from "lucide-react";
-import { GptAnalytics, PromtModel } from "./data.mock";
+import { GptAnalytics, PromtResponseModel, WebSiteModelBlog, InstagramRequestGpt, MediaRequestData, MediaRequestItem, SlideFlow, mapBusinessDiscoveryToRequestGpt } from "./data.mock";
 import { BusinessDiscovery } from "./data.mock";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import UseGptAnalytics from "./useGptAnalytics";
 import Header from "@/components/header";
 import generatePrompt from "./generatePrompt";
+import UseGptSlides from "./useGptSlides";
 
 type AnalyticsPageProps = {
   params: Promise<{ accountName: string }>;
@@ -19,6 +20,7 @@ type AnalyticsPageProps = {
 export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   const [Igdata, setIgData] = useState<BusinessDiscovery | null>(null);
   const [gptData, setGptData] = useState<GptAnalytics | null>(null);
+  const [slides, setSlides] = useState<SlideFlow[] | null>(null);
   const resolvedParams = use(params);
   const [loading, setLoading] = useState(true);
   const [isModelValid, setIsModelValid] = useState(true);
@@ -27,6 +29,8 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
 
   const router = useRouter();
   // const [showContentSlider, setShowContentSlider] = useState(false); 
+  
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -48,34 +52,35 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   
         const data = await response.json();
         if(data == null || data == undefined){
-          setMessage("The account name is not correct or server is not responding. Try later.");
+          setMessage("The account name is not correct or it is not a business account. Change it in settings and try again.");
           setIsModelValid(false);
         }
         else {
-          const analytics = await UseGptAnalytics(JSON.stringify(data.business_discovery));
+          localStorage.setItem(resolvedParams.accountName + "-igdata", JSON.stringify(data.business_discovery));
+          var modelRequest = mapBusinessDiscoveryToRequestGpt(data.business_discovery);
+  
+          const analytics = await UseGptAnalytics(JSON.stringify(modelRequest));
           if(analytics == null  || analytics == undefined){
             setMessage("The Chat Gpt is not responding. Reload the page several times");
             setIsModelValid(false);
           }
-          localStorage.setItem("posts", JSON.stringify(analytics?.PostsIdeas));
-          console.log(analytics);
           setIgData(data.business_discovery);
           setGptData(analytics);
           setIsModelValid(true);
-          const promtModel: PromtModel = {
-            Username: data.business_discovery?.username ?? "",
-            Name: data.business_discovery?.name ?? "",
-            Follows_count: data.business_discovery?.follows_count ?? 0,
-            Followers_count: data.business_discovery?.followers_count ?? 0,
-            Description: data.business_discovery?.biography ?? "",
-            FunFact: analytics?.FunFact ?? "",
-            MainAudience: analytics?.MainAudience ?? "",
-            AverageEngagementRate: analytics?.AverageEngagementRate ?? 0,
-            AveragePostLikes: analytics?.AveragePostLikes ?? 0,
-            AveragePostComments: analytics?.AveragePostComments ?? 0,
-            ContentStyle: analytics?.ContentStyle ?? "",
-          };
-          setGptRef(`https://chat.openai.com/?model=text-davinci-002-render-sha&prompt=${generatePrompt(JSON.stringify(promtModel))}`);
+          // const promtModel: PromtResponseModel = {
+          //   Username: data.business_discovery?.username ?? "",
+          //   Name: data.business_discovery?.name ?? "",
+          //   Follows_count: data.business_discovery?.follows_count ?? 0,
+          //   Followers_count: data.business_discovery?.followers_count ?? 0,
+          //   Description: data.business_discovery?.biography ?? "",
+          //   FunFact: analytics?.FunFact ?? "",
+          //   MainAudience: analytics?.MainAudience ?? "",
+          //   AverageEngagementRate: analytics?.AverageEngagementRate ?? 0,
+          //   AveragePostLikes: analytics?.AveragePostLikes ?? 0,
+          //   AveragePostComments: analytics?.AveragePostComments ?? 0,
+          //   ContentStyle: analytics?.ContentStyle ?? "",
+          // };
+          // setGptRef(`https://chat.openai.com/?model=text-davinci-002-render-sha&prompt=${generatePrompt(JSON.stringify(promtModel))}`);
         }
       
       } catch (error) {
@@ -86,13 +91,11 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
     };
   
     if (resolvedParams?.accountName) {
-      fetchData(); // ❌ remove `await` from here
+      fetchData(); 
     }
   }, [resolvedParams?.accountName, isModelValid]);  
 
   if (loading) return <LoadingSpinner />;
-
-  // Conditional rendering if the model is invalid
   if (isModelValid == false) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 p-6 gap-4">
@@ -102,8 +105,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
         <button
           onClick={
             () => router.back()
-            // ()=>console.log("hi")
-          } // Go back to the previous page
+          } 
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
         >
           Return Back
@@ -124,7 +126,6 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
         <b>✨ Your Analytics</b>
       </AnimatedShinyText>
       <div className="flex flex-col lg:flex-row gap-8 w-full max-w-5xl">
-        {/* Left Section: Instagram Profile Card */}
         <div className="w-full lg:w-1/2 bg-white rounded-lg shadow-md p-4">
           <InstagramProfileCard
             imageUrl={Igdata?.profile_picture_url as string}
@@ -138,8 +139,6 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
             averageCommentsPerPost={gptData?.AveragePostComments as number}
           />
         </div>
-
-        {/* Right Section: Analytics Data */}
         <div className="w-full lg:w-1/2 flex flex-col justify-between bg-white rounded-lg shadow-md p-4">
           <div>
             <div className="mb-4">
@@ -147,7 +146,6 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                 Your Brand Value
               </div>
             </div>
-            {/* Circle Progress Bar */}
             <div className="relative flex items-center justify-center">
               <svg className="w-36 h-36" viewBox="0 0 36 36">
                 <circle
@@ -167,7 +165,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                   cy="18"
                   r="16"
                   strokeDasharray="100"
-                  strokeDashoffset={100 - (gptData?.BrandValue ?? 0)} // Adjust dynamically
+                  strokeDashoffset={100 - (gptData?.BrandValue ?? 0)} 
                   transform="rotate(-90 18 18)"
                 ></circle>
               </svg>
@@ -210,19 +208,24 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
       </div>
       <AnalyticsCard gptAnalitics={gptData} />
       <div className="mt-8 w-full max-w-5xl flex justify-center gap-4">
-  <button
+  {/* <button
     onClick={() => router.push(`/analytics/${resolvedParams.accountName}/dashboard/${gptData?.Hashtag}`)}
     className="bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition"
   >
     Generate Content
-  </button>
-  <button
-    onClick={() => router.push(`/analytics/${resolvedParams.accountName}/posts-ideas`)}
-    className="bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition"
-  >
-    Show Post Ideas
-  </button>
-  <button
+  </button> */}
+  <div 
+  onClick={() => {
+    router.push(`/analytics/${resolvedParams.accountName}/flow`)
+
+  }}
+ className="bg-purple-600 border border-purple-700 text-white text-center px-6 py-4 rounded-xl mb-6 animate-pulse cursor-pointer"
+>
+  <p className="text-lg font-semibold">
+    Based on this, I generated a website for you! ✨
+  </p>
+</div>
+  {/* <button
     // onClick={() => router.push(`/analytics/${resolvedParams.accountName}/competitors`)}
     className="bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition"
   >
@@ -232,7 +235,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
 >
     Open ChatGpt with the generated prompt
     </a>
-  </button>
+  </button> */}
   
 </div>
 {/* <ContentSlider accountName={resolvedParams.accountName} jsonContent={JSON.stringify(gptData)} /> */}

@@ -1,4 +1,3 @@
-// components/Header.tsx
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -9,23 +8,35 @@ const Header = () => {
         {/* Logo */}
         <Link href="/" passHref>
           <Image
-            src="/violetLogo_w.png" // Add the path to your logo image here
+            src="/violetLogo_w.png"
             alt="Logo"
-            width={50} // Adjust the size of the logo
+            width={50}
             height={50}
             className="mr-4"
           />
         </Link>
         <h1 className="text-white text-xl font-bold">BrandGram+Gpt</h1>
       </div>
-      {/* Navigation (optional) */}
+      
+      {/* Navigation */}
       <nav>
-        <ul className="flex space-x-4">
+        <ul className="flex space-x-4 items-center">
           <li>
-            <Link href="/" className="text-white hover:text-gray-200">Home</Link>
+            <Link href="/create">
+              <span className="px-4 py-1 rounded-full border border-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-500 text-transparent bg-clip-text border-current animate-pulse hover:opacity-90 transition-all duration-600">
+                Create Website
+              </span>
+            </Link>
           </li>
           <li>
-            <Link href="/about" className="text-white hover:text-gray-200">About</Link>
+            <Link href="/" className="text-white hover:text-gray-200">
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link href="/about" className="text-white hover:text-gray-200">
+              About
+            </Link>
           </li>
         </ul>
       </nav>

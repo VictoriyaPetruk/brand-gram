@@ -17,7 +17,6 @@ type AnalyticsPageProps = {
     const posts = localStorage.getItem("posts");
     if (posts != null){
         const json = JSON.parse(posts);
-        console.log(json);
         setIdeas(json);
         setLoading(false);
     }

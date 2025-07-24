@@ -91,4 +91,25 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate")],
+  safelist: [
+    {
+      pattern: /text-(blue|purple|green|rose|red|yellow)-800/,
+    },
+    {
+      pattern: /hover:shadow-(blue|purple|green|rose|red|yellow)-500/,
+    },
+    {
+      pattern: /bg-(blue|purple|green|rose|red|yellow)-600/,
+    },
+    {
+      pattern: /hover:bg-(blue|purple|green|rose|red|yellow)-700/,
+    },
+    {
+      pattern: /from-(blue|purple|green|rose|red|yellow)-50/,
+    },
+    {
+      pattern: /to-(blue|purple|green|rose|red|yellow)-100/,
+    },
+  ],
+  
 } satisfies Config;

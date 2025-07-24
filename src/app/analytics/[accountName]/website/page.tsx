@@ -42,7 +42,7 @@ export default function ProfilePage({ params }: PageProps) {
         const igData = localStorage.getItem(username+"-igdata");
         if (igData) {
           
-          let website = (JSON.parse(igData) as BusinessDiscovery).website;
+          const website = (JSON.parse(igData) as BusinessDiscovery).website;
           if(links != null) {
             setLinks(JSON.parse(links));
           }
@@ -54,7 +54,7 @@ export default function ProfilePage({ params }: PageProps) {
             }
           }
           setIgData(JSON.parse(igData));
-          var modelRequest = mapBusinessDiscoveryToRequestGpt(JSON.parse(igData));
+          let modelRequest = mapBusinessDiscoveryToRequestGpt(JSON.parse(igData));
           const websiteModel =  await UseGptSlides(JSON.stringify(modelRequest));
   
           if(websiteModel != null){
@@ -76,10 +76,6 @@ export default function ProfilePage({ params }: PageProps) {
       fetchData(); 
     }
   }, [username]);
-
-  const handlePublishClick = () => {
-    alert("To publish and claim your website, message us on Instagram @brandIg with the text:\n\n'I want to link the website for my account (" + username + ")'.");
-  };
 
   const linkClass = `bg-white text-${color}-800 font-semibold py-4 rounded-full text-center
   shadow-md ${shadowHoverColor} hover:scale-105 transform transition text-lg`;

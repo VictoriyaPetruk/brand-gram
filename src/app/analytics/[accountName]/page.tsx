@@ -4,7 +4,7 @@ import InstagramProfileCard from "@/components/ui/InstagramProfileCard";
 import AnimatedShinyText from "@/components/ui/animated-shiny-text";
 import { AnalyticsCard } from "./analytics-card";
 import { MessageSquare } from "lucide-react";
-import { GptAnalytics, SlideFlow, mapBusinessDiscoveryToRequestGpt } from "./data.mock";
+import { GptAnalytics, mapBusinessDiscoveryToRequestGpt } from "./data.mock";
 import { BusinessDiscovery } from "./data.mock";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useRouter } from "next/navigation";
@@ -57,7 +57,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
         }
         else {
           localStorage.setItem(resolvedParams.accountName + "-igdata", JSON.stringify(data.business_discovery));
-          var modelRequest = mapBusinessDiscoveryToRequestGpt(data.business_discovery);
+          let modelRequest = mapBusinessDiscoveryToRequestGpt(data.business_discovery);
   
           const analytics = await UseGptAnalytics(JSON.stringify(modelRequest));
           if(analytics == null  || analytics == undefined){

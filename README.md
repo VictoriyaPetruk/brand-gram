@@ -3,6 +3,7 @@
 BrandGram - is a tool to get analytics of public Instagram accounts with ChatGpt and based on your account and AI create micro web site.
 <img width="1280" height="603" alt="image" src="https://github.com/user-attachments/assets/879149e2-a6e5-4176-8e55-d72519e039ab" />
 
+<h3>TRY IT https://brand-gram.vercel.app/</h3></br>
 <h3>Flow for creating a website:</h3></br>
 1. <img width="200" height="600" alt="image" src="https://github.com/user-attachments/assets/e5ef9fdf-0c2b-46c0-90fa-8898d3463f5c" />
 2. <img width="200" height="600" alt="image" src="https://github.com/user-attachments/assets/c3352924-1e40-4167-9ea8-1bff24b62b1d" />

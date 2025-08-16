@@ -10,7 +10,6 @@ interface AnalyticsCardProps {
 export const AnalyticsCard: React.FC<AnalyticsCardProps> = ({
   gptAnalitics
 }) => {
-  //const formattedText: string = gptAnalitics.replace(/\n/g, '\n\n');
   return (
     <Card className='w-full max-w-5xl'>
       <CardHeader className='space-y-1'>

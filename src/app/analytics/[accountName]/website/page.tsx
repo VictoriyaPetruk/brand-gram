@@ -137,16 +137,6 @@ export default function ProfilePage({ params }: PageProps) {
         <p className="text-gray-700 leading-relaxed">
           {slide.text}
         </p>
-        {/* {post && (
-          <a
-            href={`https://www.instagram.com/p/${post.id}/`}
-            className={picClass}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View post ↗
-          </a>
-        )} */}
       </div>
     </div>
   );

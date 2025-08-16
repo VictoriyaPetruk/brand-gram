@@ -19,11 +19,6 @@ export default function MainPage() {
     setLoading(true);
      
     try {
-      // Call AWS Lambda API
-     
-     // router.push(`/analytics/${accountName}`);
-      // const queryString = `?data=${encodeURIComponent(JSON.stringify(data))}`;
-      // router.push(`/analytics/${accountName}?query=${queryString}`);
       router.push(`/analytics/${accountName}`);
     } catch (error) {
       console.error("Error fetching analytics:", error);

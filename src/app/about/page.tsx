@@ -49,7 +49,7 @@ export default function About(): JSX.Element {
             </header>
             <div className="flex items-center gap-4">
               <a
-                href="mailto:hello@brandgram.example?subject=Interested%20in%20BrandGram%20code"
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=vikapetruk1234@gmail.com&su=Buy%20BrandGram%20code"
                 className="inline-block px-6 py-3 bg-violet-600 text-white rounded-2xl shadow hover:opacity-95"
               >
                 Contact us

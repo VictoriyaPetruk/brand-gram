@@ -125,7 +125,7 @@ export default function Game(): JSX.Element {
     setTimeout(() => {
       setLoading(false);
       setDiagramVisible(true);
-    }, 2000); // simulate generation
+    }, 3000); // simulate generation
   };
 
   return (
@@ -220,16 +220,28 @@ export default function Game(): JSX.Element {
         </div>
 
         {/* Input */}
-        <div className='flex items-center border-t p-2'>
-          <input
+        <div className='flex items-end border-t p-2 gap-2'>
+          <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className='flex-1 border border-orange-300 rounded-lg p-2 mr-2'
+            onChange={(e) => {
+              setInput(e.target.value);
+              const el = e.target as HTMLTextAreaElement;
+              const MAX = 100;
+
+              el.style.height = "auto"; // чтобы могло уменьшаться
+              const h = Math.min(el.scrollHeight, MAX);
+              el.style.height = `${h}px`;
+
+              // показываем скролл только если превысили лимит
+              el.style.overflowY = el.scrollHeight > MAX ? "auto" : "hidden";
+            }}
+            className='flex-1 border border-orange-300 rounded-lg p-2 resize-none min-h-[40px]'
             placeholder='Type your message...'
           />
+
           <button
             onClick={handleSubmit}
-            className='bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition'
+            className='bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition self-end'
           >
             <Send size={18} />
           </button>

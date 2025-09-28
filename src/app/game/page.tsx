@@ -33,7 +33,7 @@ export default function Game(): JSX.Element{
         )}
         {diagramVisible && (
           <a
-            href="https://aws.amazon.com/console/" // link to real AWS
+            href="https://eu-central-1.console.aws.amazon.com/lambda/home?region=eu-central-1#/functions/CloudBlocks?newFunction=true&tab=code" // link to real AWS
             target="_blank"
             className="mt-4 px-6 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition"
           >

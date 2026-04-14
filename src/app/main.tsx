@@ -31,8 +31,8 @@ export default function MainPage() {
   return (
     <div className='flex flex-col justify-center items-center w-full max-w-screen-lg mt-10'>
       {/* Search Block */}
-      <div className='p-6 bg-white rounded-lg shadow-md w-full max-w-md mb-6'>
-        <h1 className='text-2xl font-semibold mb-4 text-center'>
+      <div className='p-8 bg-card rounded-3xl shadow-soft border border-border/50 w-full max-w-md mb-6'>
+        <h1 className='text-2xl font-semibold mb-4 text-center text-foreground'>
           How AI rates your Instagram?⭐
         </h1>
 
@@ -47,14 +47,14 @@ export default function MainPage() {
 
         <Button
           onClick={handleSearch}
-          className='w-full bg-black text-white py-2 rounded-md hover:bg-purple-600'
+          className='w-full'
           disabled={loading}
         >
           {loading ? "Loading..." : "Analyze"}
         </Button>
 
         {loading && (
-          <div className='mt-4 text-center text-gray-500'>
+          <div className='mt-4 text-center text-muted-foreground'>
             Searching for {accountName}...
           </div>
         )}

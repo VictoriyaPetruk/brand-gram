@@ -15,17 +15,7 @@ export default function ProfilePage({ params }: PageProps) {
   const router = useRouter();
   const resolvedParams = use(params);
   const username = resolvedParams.accountName;
-  const color = localStorage.getItem(username+"-color") || "purple";
   const [showPopup, setShowPopup] = useState(false);
-
-  const shadowHoverColor = {
-    blue: "hover:shadow-blue-500",
-    purple: "hover:shadow-purple-500",
-    red: "hover:shadow-red-500",
-    green: "hover:shadow-green-500",
-    yellow: "hover:shadow-yellow-500"
-  }[color];
-  
 
   const [websiteModel, setWebsiteModel] = useState<WebSiteResponseGpt>();
   const [posts, setPosts] = useState<MediaItem[]>([]);
@@ -77,23 +67,25 @@ export default function ProfilePage({ params }: PageProps) {
     }
   }, [username]);
 
-  const linkClass = `bg-white text-${color}-800 font-semibold py-4 rounded-full text-center
-  shadow-md ${shadowHoverColor} hover:scale-105 transform transition text-lg`;
-  const gradientClass = `bg-gradient-to-r from-${color}-50 to-${color}-100 p-6 rounded-xl shadow-lg text-base text-gray-800 mb-8 max-w-3xl w-full`;
-  const btnClass = `mt-10 bg-${color}-600 hover:bg-${color}-700 hover:shadow-lg hover:shadow-${color}-500 transition text-white font-semibold py-4 px-8 rounded-full max-w-3xl w-full text-xl`;
-  // const picClass = `text-${color}-600 font-medium mt-2 inline-block hover:text-${color}-500 hover:underline transition-colors duration-300`;
-  const picCoverClass = `rounded-xl w-full md:w-1/2 object-cover max-h-96 shadow-md ${shadowHoverColor} transition-shadow duration-300`;
+  const linkClass =
+    "bg-card text-foreground font-semibold py-4 rounded-full text-center border border-dashed border-border shadow-soft hover:shadow-md hover:scale-[1.02] transform transition text-lg";
+  const gradientClass =
+    "bg-gradient-to-br from-sky-50 via-fuchsia-50 to-amber-50 p-6 md:p-8 rounded-3xl shadow-soft border border-border/40 text-base text-foreground mb-8 max-w-3xl w-full";
+  const btnClass =
+    "mt-10 bg-brand-gradient text-white font-semibold py-4 px-8 rounded-full max-w-3xl w-full text-xl shadow-soft hover:opacity-90 transition";
+  const picCoverClass =
+    "rounded-3xl w-full md:w-1/2 object-cover max-h-96 shadow-soft border border-border/40 hover:shadow-md transition-shadow duration-300";
   
   
   if (loading) return <LoadingSpinner />;
   return (
-  <div className="bg-[#FFFFFF] min-h-screen px-6 py-10 flex flex-col items-center">
+  <div className="min-h-screen bg-background px-6 py-10 flex flex-col items-center">
     <div className="text-center mb-6 max-w-3xl w-full">
         <img
       src={igData?.profile_picture_url}
-      className="mx-auto w-28 h-28 rounded-full shadow-lg"
+      className="mx-auto w-28 h-28 rounded-full shadow-soft ring-4 ring-background"
     />
-    <h1 className="text-3xl font-bold mt-3 text-black">
+    <h1 className="text-3xl font-bold mt-3 text-foreground">
       <a
         href={`https://instagram.com/${username}`}
         target="_blank"
@@ -104,11 +96,11 @@ export default function ProfilePage({ params }: PageProps) {
       </a>
     </h1>
 
-      <p className="text-base text-gray-600">{igData?.biography || "biography"}</p>
+      <p className="text-base text-muted-foreground">{igData?.biography || "biography"}</p>
     </div>
 
     <div className={gradientClass}>
-      <h3 className="font-semibold text-xl mb-3 text-gray-800">👋 About </h3>
+      <h3 className="font-semibold text-xl mb-3 text-foreground">👋 About </h3>
       <p>{websiteModel?.about  || "About me"}</p>
     </div>
 
@@ -131,10 +123,10 @@ export default function ProfilePage({ params }: PageProps) {
         />
       )}
       <div className="w-full md:w-1/2">
-        <h4 className="text-xl font-semibold mb-2 text-black-700">
+        <h4 className="text-xl font-semibold mb-2 text-foreground">
           { "🌆" + slide.title || `🌆 Top Post #${i + 1}`}
         </h4>
-        <p className="text-gray-700 leading-relaxed">
+        <p className="text-muted-foreground leading-relaxed">
           {slide.text}
         </p>
       </div>
@@ -145,7 +137,7 @@ export default function ProfilePage({ params }: PageProps) {
     </div>
 
     <div className={gradientClass}>
-      <h3 className="font-semibold mb-3 text-xl text-black-700">✨ Fun fact</h3>
+      <h3 className="font-semibold mb-3 text-xl text-foreground">✨ Fun fact</h3>
       <p>{websiteModel?.funFact  || "Do not have info"}</p>
     </div>
 
@@ -174,7 +166,7 @@ export default function ProfilePage({ params }: PageProps) {
       Publish/Edit Website
     </button>
 
-    <p className="text-xs text-gray-400 mt-12 max-w-3xl w-full text-center">
+    <p className="text-xs text-muted-foreground mt-12 max-w-3xl w-full text-center">
       This preview website was generated 💜 by BrandGram AI
     </p>
     {showPopup && (

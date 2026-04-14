@@ -54,10 +54,10 @@ export default function UsernameInputPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-white px-6 py-10">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-background px-6 py-10">
       <div className="max-w-md w-full text-center">
-        <h1 className="text-3xl font-bold mb-4">✨ Let’s start creating your website</h1>
-        <p className="text-gray-600 mb-6">
+        <h1 className="text-3xl font-bold mb-4 text-foreground tracking-tight">✨ Let’s start creating your website</h1>
+        <p className="text-muted-foreground mb-6">
           Enter your Instagram username to check if it’s ready
         </p>
 
@@ -67,7 +67,7 @@ export default function UsernameInputPage() {
             placeholder="@yourname"
             value={username}
             onChange={(e) => setUsername(e.target.value.replace(/^@/, ''))}
-            className="w-full border border-gray-300 rounded-full px-4 py-2 text-center"
+            className="w-full border border-input bg-card rounded-full px-4 py-3 text-center text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             disabled={loading}
           />
           {loading && (
@@ -82,7 +82,7 @@ export default function UsernameInputPage() {
         <button
             onClick={handleSubmit}
             disabled={loading || !username}
-            className="mt-6 bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-2 rounded-full hover:from-fuchsia-600 hover:to-purple-600 transition cursor-pointer disabled:cursor-not-allowed"
+            className="mt-6 bg-brand-gradient text-white px-8 py-3 rounded-full shadow-soft font-semibold transition-opacity hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
         Start 🚀
         </button>

@@ -12,17 +12,17 @@ export default function PublishPopup({ username, onClose }: { username: string; 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full text-center">
-        <h2 className="text-2xl font-semibold mb-4">🚀 Ready to Publish</h2>
-        <p className="text-gray-700 mb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm">
+      <div className="mx-4 max-w-md w-full rounded-3xl border border-border/50 bg-card p-8 text-center shadow-soft">
+        <h2 className="text-2xl font-semibold mb-4 text-foreground">🚀 Ready to Publish</h2>
+        <p className="text-muted-foreground mb-4">
           To publish and purchase your website, DM us on Instagram:
           <br />
           <a
             href="https://instagram.com/brandgram_ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-purple-600 underline mt-2 inline-block"
+            className="mt-2 inline-block font-medium text-primary underline underline-offset-4"
           >
             @brandgram_ai
           </a>
@@ -32,14 +32,14 @@ export default function PublishPopup({ username, onClose }: { username: string; 
         </div>
         <button
           onClick={handleCopy}
-          className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition mb-4"
+          className="mb-4 rounded-full bg-brand-gradient px-6 py-2.5 text-sm font-semibold text-white shadow-soft transition-opacity hover:opacity-90"
         >
           {copied ? "Copied!" : "Copy Text"}
         </button>
         <br />
         <button
           onClick={onClose}
-          className="text-sm text-gray-500 hover:text-gray-700 underline"
+          className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
         >
           Close
         </button>

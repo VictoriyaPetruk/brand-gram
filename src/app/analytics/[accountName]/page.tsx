@@ -95,7 +95,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   if (loading) return <LoadingSpinner />;
   if (isModelValid == false) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 p-6 gap-4">
+      <div className="flex flex-col justify-center items-center min-h-screen bg-background p-6 gap-4">
         <div className="text-xl text-red-500 font-semibold mb-4">
           {Message || "The model data is invalid."}
         </div>
@@ -103,7 +103,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
           onClick={
             () => router.back()
           } 
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          className="rounded-full bg-brand-gradient px-6 py-2.5 text-sm font-semibold text-white shadow-soft transition-opacity hover:opacity-90"
         >
           Return Back
         </button>
@@ -118,12 +118,12 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   return (
     <>
     <Header/>
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 p-6 gap-4">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-background p-6 gap-4">
       <AnimatedShinyText className="inline-flex items-center justify-center px-4 py-1 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
         <b>✨ Your Analytics</b>
       </AnimatedShinyText>
       <div className="flex flex-col lg:flex-row gap-8 w-full max-w-5xl">
-        <div className="w-full lg:w-1/2 bg-white rounded-lg shadow-md p-4">
+        <div className="w-full lg:w-1/2 bg-card rounded-3xl shadow-soft border border-border/50 p-6">
           <InstagramProfileCard
             imageUrl={Igdata?.profile_picture_url as string}
             accountName={resolvedParams.accountName}
@@ -136,17 +136,25 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
             averageCommentsPerPost={gptData?.AveragePostComments as number}
           />
         </div>
-        <div className="w-full lg:w-1/2 flex flex-col justify-between bg-white rounded-lg shadow-md p-4">
+        <div className="w-full lg:w-1/2 flex flex-col justify-between bg-card rounded-3xl shadow-soft border border-border/50 p-6">
           <div>
             <div className="mb-4">
-              <div className="text-2xl font-semibold text-gray-800 text-center">
+              <div className="text-2xl font-semibold text-foreground text-center">
                 Your Brand Value
               </div>
             </div>
             <div className="relative flex items-center justify-center">
               <svg className="w-36 h-36" viewBox="0 0 36 36">
+                <defs>
+                  <linearGradient id="analyticsBrandRing" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#6eb5ff" />
+                    <stop offset="33%" stopColor="#a287f4" />
+                    <stop offset="66%" stopColor="#f472b6" />
+                    <stop offset="100%" stopColor="#fb923c" />
+                  </linearGradient>
+                </defs>
                 <circle
-                  className="text-gray-200 stroke-current"
+                  className="stroke-slate-200 text-slate-200 stroke-current"
                   strokeWidth="4"
                   fill="none"
                   cx="18"
@@ -154,7 +162,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                   r="16"
                 ></circle>
                 <circle
-                  className="text-black-500 stroke-current"
+                  stroke="url(#analyticsBrandRing)"
                   strokeWidth="4"
                   strokeLinecap="round"
                   fill="none"
@@ -166,7 +174,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
                   transform="rotate(-90 18 18)"
                 ></circle>
               </svg>
-              <span className="absolute text-lg font-semibold text-gray-800">
+              <span className="absolute text-lg font-semibold text-foreground">
                 {`${gptData?.BrandValue ?? 0}%`}
               </span>
             </div>
@@ -210,14 +218,14 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
     router.push(`/analytics/${resolvedParams.accountName}/flow`)
 
   }}
- className="bg-purple-600 border border-purple-700 text-white text-center px-6 py-4 rounded-xl mb-6 animate-pulse cursor-pointer"
+ className="bg-brand-gradient border-0 text-white text-center px-6 py-5 rounded-3xl mb-6 cursor-pointer shadow-soft transition-opacity hover:opacity-90 animate-pulse"
 >
   <p className="text-lg font-semibold">
     Based on this, I generated a website for you! ✨
   </p>
 </div>
   <button
-    className="bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition"
+    className="rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground shadow-soft transition-colors hover:bg-muted/60"
   >
     <a
   href={gptRef}

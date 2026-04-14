@@ -86,20 +86,20 @@ export default function StartFlow({ params }: PageProps) {
   const back = () => setStep((s) => s - 1);
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-background px-6 py-10 flex flex-col items-center justify-center">
       <div className="max-w-md w-full">
 
         {step === 0 && (
           <div className="animate-fade text-center">
             <h1 className="text-3xl font-bold mb-4">✨Your website is almost ready</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               Please answer several questions to customize it.
             </p>
             <div className="flex justify-between">
-              <button onClick={() => router.push("/")} className="text-gray-500">← Back</button>
+              <button onClick={() => router.push("/")} className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">← Back</button>
               <button
                 onClick={next}
-                className="bg-purple-600 text-white px-4 py-2 rounded-full"
+                className="rounded-full bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-opacity hover:opacity-90"
               >
                 Next 🚀
               </button>
@@ -120,14 +120,14 @@ export default function StartFlow({ params }: PageProps) {
                   value={link.title}
                   onChange={(e) => handleLinkChange(i, 'title', e.target.value)}
                   placeholder="Title (e.g. My Portfolio)"
-                  className="w-full border p-2 rounded mb-2"
+                  className="w-full border border-input bg-card px-3 py-2 rounded-2xl mb-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <input
                   type="url"
                   value={link.url}
                   onChange={(e) => handleLinkChange(i, 'url', e.target.value)}
                   placeholder="https://example.com"
-                  className={`w-full border p-2 rounded ${
+                  className={`w-full border border-input bg-card px-3 py-2 rounded-2xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     urlErrors[i] ? 'border-red-500' : ''
                   }`}
                 />
@@ -146,7 +146,7 @@ export default function StartFlow({ params }: PageProps) {
 
             <button
               onClick={addLink}
-              className="text-purple-600 text-sm mb-4 underline"
+              className="text-sm font-medium text-primary mb-4 underline underline-offset-4 hover:opacity-80"
             >
               + add more
             </button>
@@ -185,12 +185,12 @@ export default function StartFlow({ params }: PageProps) {
               ))}
             </div>
             <div className="flex justify-between mt-6">
-              <button onClick={back} className="text-gray-500">
+              <button onClick={back} className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                 ← Back
               </button>
               <button
                 onClick={next}
-                className="bg-purple-600 text-white px-4 py-2 rounded-full"
+                className="rounded-full bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-opacity hover:opacity-90"
               >
                 Create 🚀
               </button>

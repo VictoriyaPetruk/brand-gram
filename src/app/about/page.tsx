@@ -35,30 +35,30 @@ const TECH_NOTES = [
 export default function About(): JSX.Element {
   return (
     <>
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <main className="max-w-6xl w-full bg-white rounded-2xl shadow-lg p-8 grid gap-8 lg:grid-cols-2">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <main className="max-w-6xl w-full bg-card rounded-3xl shadow-soft border border-border/50 p-8 md:p-10 grid gap-8 lg:grid-cols-2">
           {/* Left column: hero + video */}
           <section className="space-y-6">
             <header>
               <h1 className="text-3xl md:text-4xl font-extrabold leading-tight">
                 BrandGram — micro websites generated from your Instagram ✨
               </h1>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Micro website generator powered by ChatGPT, tailored from your Instagram feed.
               </p>
             </header>
             <div className="flex items-center gap-4">
               <a
                 href="https://mail.google.com/mail/?view=cm&fs=1&to=vikapetruk1234@gmail.com&su=Buy%20BrandGram%20code"
-                className="inline-block px-6 py-3 bg-violet-600 text-white rounded-2xl shadow hover:opacity-95"
+                className="inline-block rounded-full bg-brand-gradient px-8 py-3 text-sm font-semibold text-white shadow-soft transition-opacity hover:opacity-90"
               >
                 Contact us
               </a>
-              <a href="#use-cases" className="text-sm text-gray-600 underline">
+              <a href="#use-cases" className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
                 Try BrandGram
               </a>
             </div>
-            <div className="rounded-xl overflow-hidden bg-gray-100 mx-auto max-w-[320px]">
+            <div className="rounded-3xl overflow-hidden bg-muted/40 mx-auto max-w-[320px] border border-border/40">
             <div className="aspect-[1032/1920]">
               <video
                 className="w-full h-full object-contain"
@@ -71,14 +71,14 @@ export default function About(): JSX.Element {
               </video>
             </div>
           </div>
-          <div className="rounded-lg border p-4">
+          <div className="rounded-3xl border border-border/60 bg-muted/20 p-5">
               <h3 className="font-semibold">Instagram preview</h3>
-              <a href="https://www.instagram.com/brandgram_ai/"  className="text-sm text-gray-500"target="_blank" rel="noopener noreferrer">
+              <a href="https://www.instagram.com/brandgram_ai/"  className="text-sm text-muted-foreground" target="_blank" rel="noopener noreferrer">
                 https://www.instagram.com/brandgram_ai/
               </a>
 
               {/* Placeholder frame for Instagram feed (replace with your embed/iframe or component) */}
-              <div className="mt-4 border rounded-md overflow-hidden">
+              <div className="mt-4 border border-border/60 rounded-2xl overflow-hidden">
               <img
                 src="/feed.jpg"
                 alt="BrandGram Instagram preview"
@@ -92,9 +92,9 @@ export default function About(): JSX.Element {
           {/* Right column: Insta feed, features, prompts, customers */}
           <aside className="space-y-6">
             
-          <div className="rounded-lg border p-4">
+          <div className="rounded-3xl border border-border/60 bg-muted/20 p-5">
               <h3 className="font-semibold">What BrandGram does</h3>
-              <ul className="mt-3 space-y-2 text-sm text-gray-700">
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li>• Generate a micro website with your links and real content from your Instagram </li>
                 <li>• Storytelling technology based on your photos using ChatGpt prompts to make your website live.</li>
                 <li>• Get general analititcs of a business acount using Facebook API</li>
@@ -103,33 +103,33 @@ export default function About(): JSX.Element {
               </ul>
             </div>
             
-          <div className="rounded-lg border p-4">
+          <div className="rounded-3xl border border-border/60 bg-muted/20 p-5">
               <h3 className="font-semibold">Tech notes</h3>
               <div className="mt-3 space-y-2 text-sm">
                 {TECH_NOTES.map((p) => (
-                  <div key={p.title} className="bg-gray-50 rounded-md p-3">
-                    <strong className="block">{p.title}</strong>
-                    <code className="block text-xs mt-1 text-gray-600 break-words">{p.prompt}</code>
+                  <div key={p.title} className="rounded-2xl border border-border/40 bg-card p-3">
+                    <strong className="block text-foreground">{p.title}</strong>
+                    <code className="block text-xs mt-1 text-muted-foreground break-words">{p.prompt}</code>
                   </div>
                 ))}
               </div>
           </div>
 
-            <div className="rounded-lg border p-4">
+            <div className="rounded-3xl border border-border/60 bg-muted/20 p-5">
               <h3 className="font-semibold">GPT prompts included</h3>
               <div className="mt-3 space-y-2 text-sm">
                 {GPT_PROMPTS.map((p) => (
-                  <div key={p.title} className="bg-gray-50 rounded-md p-3">
-                    <strong className="block">{p.title}</strong>
-                    <code className="block text-xs mt-1 text-gray-600 break-words">{p.prompt}</code>
+                  <div key={p.title} className="rounded-2xl border border-border/40 bg-card p-3">
+                    <strong className="block text-foreground">{p.title}</strong>
+                    <code className="block text-xs mt-1 text-muted-foreground break-words">{p.prompt}</code>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div id="use-cases" className="rounded-lg border p-4">
+            <div id="use-cases" className="rounded-3xl border border-border/60 bg-muted/20 p-5">
               <h3 className="font-semibold">Our customers and where to use it</h3>
-              <ul className="mt-3 list-disc list-inside text-sm text-gray-700 space-y-1">
+              <ul className="mt-3 list-disc list-inside text-sm text-muted-foreground space-y-1">
                 <li>
                   Small businesses — coffee shops, stores, studios that run active Instagram accounts and want a simple site without extra dev work.
                 </li>
@@ -139,10 +139,10 @@ export default function About(): JSX.Element {
                 <li>Marketing agencies — fast demo sites for clients, A/B testing landing pages based on real content.</li>
               </ul>
 
-              <p className="text-xs text-gray-500 mt-3">Why it works: it saves development time, uses real client content, and generates link bio.</p>
+              <p className="text-xs text-muted-foreground mt-3">Why it works: it saves development time, uses real client content, and generates link bio.</p>
             </div>
 
-            <div className="rounded-lg border p-4">
+            <div className="rounded-3xl border border-border/60 bg-muted/20 p-5">
               <h3 className="font-semibold">How to use</h3>
               <ol className="mt-3 list-decimal list-inside text-sm text-gray-700 space-y-1">
                 <li>Type your Instagram Business account.</li>
@@ -153,14 +153,14 @@ export default function About(): JSX.Element {
             </div>
 
             <div className="text-center mt-2">
-              <p className="text-sm text-gray-600">All rights reserved. Code is private on GitHub.</p>
+              <p className="text-sm text-muted-foreground">All rights reserved. Code is private on GitHub.</p>
             </div>
           </aside>
         </main>
 
         {/* Floating contact CTA at bottom-right */}
         <a
-            className="fixed right-6 bottom-6 inline-flex items-center gap-3 px-5 py-3 rounded-full bg-violet-600 text-white shadow-lg"
+            className="fixed right-6 bottom-6 z-50 inline-flex items-center gap-3 rounded-full bg-brand-gradient px-5 py-3 text-sm font-semibold text-white shadow-soft transition-opacity hover:opacity-90 max-w-[min(100vw-3rem,22rem)]"
             href="https://mail.google.com/mail/?view=cm&fs=1&to=vikapetruk1234@gmail.com&su=Buy%20BrandGram%20code"
             target="_blank"
             rel="noopener noreferrer"

@@ -37,10 +37,10 @@ const InstagramProfileCard: React.FC<InstagramProfileCardProps> = ({
       />
 
       {/* Account Name */}
-      <div className='text-2xl font-semibold text-gray-800'>{accountName}</div>
+      <div className='text-2xl font-semibold text-foreground'>{accountName}</div>
 
       {/* Description */}
-      <div className='text-gray-600 text-center mt-2'>{description}</div>
+      <div className='text-muted-foreground text-center mt-2'>{description}</div>
       <div className='w-full mt-4'>
         {/* Metrics Analysis Section */}
         <div>

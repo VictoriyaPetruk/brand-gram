@@ -10,6 +10,21 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          "var(--font-geist-sans)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
+      },
+      backgroundImage: {
+        "brand-gradient":
+          "linear-gradient(to right, #6eb5ff, #a287f4, #f472b6, #fb923c)",
+      },
+      boxShadow: {
+        soft: "0 4px 24px -6px rgba(15, 23, 42, 0.08)",
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

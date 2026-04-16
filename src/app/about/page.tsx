@@ -35,12 +35,12 @@ const TECH_NOTES = [
 export default function About(): JSX.Element {
   return (
     <>
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <main className="max-w-6xl w-full bg-card rounded-3xl shadow-soft border border-border/50 p-8 md:p-10 grid gap-8 lg:grid-cols-2">
+      <div className="min-h-[calc(100vh-5rem)] bg-background flex items-center justify-center px-4 py-8 sm:px-6">
+        <main className="max-w-6xl w-full bg-card rounded-3xl shadow-soft border border-border/50 p-6 sm:p-8 md:p-10 grid gap-8 lg:grid-cols-2">
           {/* Left column: hero + video */}
           <section className="space-y-6">
             <header>
-              <h1 className="text-3xl md:text-4xl font-extrabold leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight">
                 BrandGram — micro websites generated from your Instagram ✨
               </h1>
               <p className="text-sm text-muted-foreground mt-2">

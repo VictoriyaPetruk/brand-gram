@@ -3,15 +3,11 @@ import Header from "@/components/header";
 
 export default function Home() {
   return (
-    <div className='flex flex-col min-h-screen bg-background'>
-      {/* Header Section */}
+    <div className="flex flex-col min-h-screen">
       <Header />
-
-      {/* Main Content Section */}
-      <main className='flex-1 flex flex-col justify-center items-center'>
+      <div className="flex-1 flex flex-col justify-center">
         <MainPage />
-      </main>
-      <footer className='w-full'></footer>
+      </div>
     </div>
   );
 }

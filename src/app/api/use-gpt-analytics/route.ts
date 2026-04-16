@@ -4,7 +4,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { GptAnalytics } from "../../analytics/[accountName]/data.mock";
 
 export async function POST(req: NextRequest) {
+  const apiKey = "AIzaSyBqjMYPzQNh3Bw2o5KS48c9KIxnUWBrvak";
+
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "Missing OpenAI API key. Set OPENAI_API_KEY (or GPT_TOKEN) in .env.local" },
+      { status: 500 }
+    );
+  }
+
   const { jsonContent } = await req.json();
+  if (typeof jsonContent !== "string" || !jsonContent.trim()) {
+    return NextResponse.json({ error: "Parameter 'jsonContent' is required." }, { status: 400 });
+  }
 
   const prompt = `
     Provide Instagram page statistics in json string format according to the template: 
@@ -25,26 +37,36 @@ export async function POST(req: NextRequest) {
   `;
 
   const body = {
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 500
+    contents: [{
+      parts: [{
+        text: prompt
+      }]
+    }]
   };
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GPT_TOKEN}`
     },
     body: JSON.stringify(body)
   });
 
+  if (!res.ok) {
+    const errorText = await res.text();
+    return NextResponse.json(
+      { error: "OpenAI request failed", details: errorText },
+      { status: res.status }
+    );
+  }
+
   const data = await res.json();
-  const content = data?.choices?.[0]?.message?.content;
+  let content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  
   if (!content) {
     return NextResponse.json({ error: "No content returned from GPT" }, { status: 500 });
   }
-
+  content = content.replace(/^```json/i, '').replace(/```$/i, '').trim();
+  console.log(content);
   let parsed: GptAnalytics;
 
     try {

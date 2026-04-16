@@ -6,6 +6,7 @@ import { BusinessDiscovery, LinkItem, mapBusinessDiscoveryToRequestGpt, MediaIte
 import UseGptSlides from "../useGptSlides";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import PublishPopup from "./popup";
+import { resolveCachedAccountData } from "@/lib/instagram-cache";
 
 type PageProps = {
   params: Promise<{ accountName: string, hashtag: string }>;
@@ -28,11 +29,12 @@ export default function ProfilePage({ params }: PageProps) {
     const fetchData = async () => {
       try{
         setLoading(true);
-        const links = localStorage.getItem(username+"-links");
-        const igData = localStorage.getItem(username+"-igdata");
+        const cachedAccount = resolveCachedAccountData(username);
+        const links = localStorage.getItem((cachedAccount?.accountKey ?? username)+"-links");
+        const igData = cachedAccount?.igData;
         if (igData) {
           
-          const website = (JSON.parse(igData) as BusinessDiscovery).website;
+          const website = igData.website;
           if(links != null) {
             setLinks(JSON.parse(links));
           }
@@ -43,14 +45,14 @@ export default function ProfilePage({ params }: PageProps) {
               } as LinkItem])
             }
           }
-          setIgData(JSON.parse(igData));
-          const modelRequest = mapBusinessDiscoveryToRequestGpt(JSON.parse(igData));
+          setIgData(igData);
+          const modelRequest = mapBusinessDiscoveryToRequestGpt(igData);
           const websiteModel =  await UseGptSlides(JSON.stringify(modelRequest));
   
           if(websiteModel != null){
             setWebsiteModel(websiteModel);
             setSlides(websiteModel.slidesFlow);
-            setPosts((JSON.parse(igData) as BusinessDiscovery).media.data);
+            setPosts(igData.media.data);
           }
         }
         else {
@@ -79,13 +81,13 @@ export default function ProfilePage({ params }: PageProps) {
   
   if (loading) return <LoadingSpinner />;
   return (
-  <div className="min-h-screen bg-background px-6 py-10 flex flex-col items-center">
+  <div className="min-h-[calc(100vh-5rem)] bg-background px-4 py-8 sm:px-6 sm:py-10 flex flex-col items-center">
     <div className="text-center mb-6 max-w-3xl w-full">
         <img
       src={igData?.profile_picture_url}
       className="mx-auto w-28 h-28 rounded-full shadow-soft ring-4 ring-background"
     />
-    <h1 className="text-3xl font-bold mt-3 text-foreground">
+    <h1 className="text-2xl sm:text-3xl font-bold mt-3 text-foreground">
       <a
         href={`https://instagram.com/${username}`}
         target="_blank"

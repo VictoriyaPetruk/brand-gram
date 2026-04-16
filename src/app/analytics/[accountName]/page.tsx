@@ -3,14 +3,14 @@ import { use, useEffect, useState } from "react";
 import InstagramProfileCard from "@/components/ui/InstagramProfileCard";
 import AnimatedShinyText from "@/components/ui/animated-shiny-text";
 import { AnalyticsCard } from "./analytics-card";
-import { MessageSquare } from "lucide-react";
-import { GptAnalytics, mapBusinessDiscoveryToRequestGpt, PromtResponseModel } from "./data.mock";
+import { GptAnalytics, mapBusinessDiscoveryToRequestGpt } from "./data.mock";
 import { BusinessDiscovery } from "./data.mock";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import UseGptAnalytics from "./useGptAnalytics";
 import Header from "@/components/header";
-import generatePrompt from "./generatePrompt";
+import { getCachedGptAnalytics, resolveCachedAccountData } from "@/lib/instagram-cache";
+import { addSavedAccount, isAccountSaved } from "@/lib/saved-accounts";
 
 type AnalyticsPageProps = {
   params: Promise<{ accountName: string }>;
@@ -23,18 +23,44 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   const [loading, setLoading] = useState(true);
   const [isModelValid, setIsModelValid] = useState(true);
   const [Message, setMessage] = useState("");
-  const [gptRef, setGptRef] = useState("https://chat.openai.com/?model=text-davinci-002-render-sha&prompt=");
+  const [accountSaved, setAccountSaved] = useState(false);
 
   const router = useRouter();
   
   
   useEffect(() => {
     const fetchData = async () => {
+      const routeAccount = resolvedParams.accountName.trim().toLowerCase();
+      const cachedAccount = resolveCachedAccountData(routeAccount);
+
+      const applyContext = async (igContext: BusinessDiscovery, accountKey: string) => {
+        const existingAnalytics = getCachedGptAnalytics(accountKey);
+        let analytics = existingAnalytics;
+        if (!analytics) {
+          const modelRequest = mapBusinessDiscoveryToRequestGpt(igContext);
+          analytics = await UseGptAnalytics(JSON.stringify(modelRequest));
+          if (analytics) {
+            localStorage.setItem(`${accountKey}-gpt-analytics`, JSON.stringify(analytics));
+          }
+        }
+
+        if (!analytics) {
+          setMessage("The Chat Gpt is not responding. Reload the page several times");
+          setIsModelValid(false);
+          return;
+        }
+
+        localStorage.setItem(`${accountKey}-igdata`, JSON.stringify(igContext));
+        setIgData(igContext);
+        setGptData(analytics);
+        setIsModelValid(true);
+      };
+
       try {
         setLoading(true);
   
         const response = await fetch(
-          `https://nmaucysl2df74e7574m33y3ykm0hfdoh.lambda-url.eu-central-1.on.aws/api/igbrand/ig?username=${resolvedParams.accountName}`,
+          `https://nmaucysl2df74e7574m33y3ykm0hfdoh.lambda-url.eu-central-1.on.aws/api/igbrand/ig?username=${routeAccount}`,
           {
             method: "GET",
             headers: {
@@ -49,39 +75,25 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   
         const data = await response.json();
         if(data == null || data == undefined){
-          setMessage("The account name is not correct or it is not a business account. Change it in settings and try again.");
-          setIsModelValid(false);
-        }
-        else {
-          localStorage.setItem(resolvedParams.accountName + "-igdata", JSON.stringify(data.business_discovery));
-          const modelRequest = mapBusinessDiscoveryToRequestGpt(data.business_discovery);
-  
-          const analytics = await UseGptAnalytics(JSON.stringify(modelRequest));
-          if(analytics == null  || analytics == undefined){
-            setMessage("The Chat Gpt is not responding. Reload the page several times");
+          if (cachedAccount) {
+            await applyContext(cachedAccount.igData, cachedAccount.accountKey);
+          } else {
+            setMessage("The account name is not correct or it is not a business account. Change it in settings and try again.");
             setIsModelValid(false);
           }
-          setIgData(data.business_discovery);
-          setGptData(analytics);
-          setIsModelValid(true);
-          const promtModel: PromtResponseModel = {
-            Username: data.business_discovery?.username ?? "",
-            Name: data.business_discovery?.name ?? "",
-            Follows_count: data.business_discovery?.follows_count ?? 0,
-            Followers_count: data.business_discovery?.followers_count ?? 0,
-            Description: data.business_discovery?.biography ?? "",
-            FunFact: analytics?.FunFact ?? "",
-            MainAudience: analytics?.MainAudience ?? "",
-            AverageEngagementRate: analytics?.AverageEngagementRate ?? 0,
-            AveragePostLikes: analytics?.AveragePostLikes ?? 0,
-            AveragePostComments: analytics?.AveragePostComments ?? 0,
-            ContentStyle: analytics?.ContentStyle ?? "",
-          };
-          setGptRef(`https://chat.openai.com/?model=text-davinci-002-render-sha&prompt=${generatePrompt(JSON.stringify(promtModel))}`);
+        }
+        else {
+          await applyContext(data.business_discovery, routeAccount);
         }
       
       } catch (error) {
         console.error("Error parsing the data:", error);
+        if (cachedAccount) {
+          await applyContext(cachedAccount.igData, cachedAccount.accountKey);
+        } else {
+          setMessage("Could not load this account and no local cache was found.");
+          setIsModelValid(false);
+        }
       } finally {
         setLoading(false);
       }
@@ -91,6 +103,11 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
       fetchData(); 
     }
   }, [resolvedParams?.accountName, isModelValid]);  
+
+  useEffect(() => {
+    const activeAccountName = (Igdata?.username ?? resolvedParams.accountName ?? "").trim().toLowerCase();
+    setAccountSaved(isAccountSaved(activeAccountName));
+  }, [Igdata?.username, resolvedParams.accountName]);
 
   if (loading) return <LoadingSpinner />;
   if (isModelValid == false) {
@@ -114,16 +131,23 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   const bestPost = Igdata?.media?.data?.reduce((max, post) => {
     return post.like_count > max.like_count ? post : max;
   }, Igdata?.media?.data?.[0]);
+
+  const handleSaveAccount = () => {
+    const activeAccountName = (Igdata?.username ?? resolvedParams.accountName ?? "").trim().toLowerCase();
+    if (!activeAccountName) return;
+    addSavedAccount(activeAccountName);
+    setAccountSaved(true);
+  };
   
   return (
     <>
     <Header/>
-    <div className="flex flex-col justify-center items-center min-h-screen bg-background p-6 gap-4">
+    <div className="flex flex-col justify-center items-center min-h-[calc(100vh-5rem)] bg-background px-4 py-6 sm:px-6 sm:py-8 gap-4">
       <AnimatedShinyText className="inline-flex items-center justify-center px-4 py-1 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
         <b>✨ Your Analytics</b>
       </AnimatedShinyText>
-      <div className="flex flex-col lg:flex-row gap-8 w-full max-w-5xl">
-        <div className="w-full lg:w-1/2 bg-card rounded-3xl shadow-soft border border-border/50 p-6">
+      <div className="grid w-full max-w-5xl grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="w-full lg:col-span-7 bg-card rounded-3xl shadow-soft border border-border/50 p-4 md:p-6">
           <InstagramProfileCard
             imageUrl={Igdata?.profile_picture_url as string}
             accountName={resolvedParams.accountName}
@@ -131,17 +155,14 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
             followers={Igdata?.followers_count as number}
             followings={Igdata?.follows_count as number}
             mediaCount={Igdata?.media_count as number}
-            avgLikes={gptData?.AveragePostLikes as number}
-            averageEngagementRate={gptData?.AverageEngagementRate as number}
-            averageCommentsPerPost={gptData?.AveragePostComments as number}
+            onSaveAccount={handleSaveAccount}
+            isAccountSaved={accountSaved}
           />
         </div>
-        <div className="w-full lg:w-1/2 flex flex-col justify-between bg-card rounded-3xl shadow-soft border border-border/50 p-6">
-          <div>
-            <div className="mb-4">
-              <div className="text-2xl font-semibold text-foreground text-center">
-                Your Brand Value
-              </div>
+        <div className="w-full lg:col-span-5 bg-card rounded-3xl shadow-soft border border-border/50 p-6">
+          <div className="flex min-h-[300px] flex-col items-center justify-center gap-5">
+            <div className="text-center text-2xl font-semibold text-foreground">
+              Your Brand Value
             </div>
             <div className="relative flex items-center justify-center">
               <svg className="w-36 h-36" viewBox="0 0 36 36">
@@ -179,40 +200,15 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
               </span>
             </div>
           </div>
-            {bestPost && (
-              <div className="w-full mt-4 justify-bottom">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  The best latest post analysis
-                </h3>
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Format</span>
-                    <span className="font-medium">{bestPost.media_type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Likes</span>
-                    <span className="font-medium">
-                      {bestPost.like_count === 0 ? "hidden" : bestPost.like_count}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Comments</span>
-                    <span className="font-medium">{bestPost.comments_count}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Caption</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">{bestPost.caption}</span>
-                  </div>
-                </div>
-              </div>
-            )}
         </div>
       </div>
-      <AnalyticsCard gptAnalitics={gptData} />
-      <div className="mt-8 w-full max-w-5xl flex justify-center gap-4">
+      <AnalyticsCard
+        gptAnalitics={gptData}
+        bestPost={bestPost ?? null}
+        mediaPosts={Igdata?.media?.data ?? []}
+        followersCount={Igdata?.followers_count ?? 0}
+      />
+      <div className="mt-8 w-full max-w-5xl flex flex-wrap justify-center gap-4">
   <div 
   onClick={() => {
     router.push(`/analytics/${resolvedParams.accountName}/flow`)
@@ -221,19 +217,9 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
  className="bg-brand-gradient border-0 text-white text-center px-6 py-5 rounded-3xl mb-6 cursor-pointer shadow-soft transition-opacity hover:opacity-90 animate-pulse"
 >
   <p className="text-lg font-semibold">
-    Based on this, I generated a website for you! ✨
+  ✨ Generate 5 Custom Post Ideas for your ICPs
   </p>
 </div>
-  <button
-    className="rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground shadow-soft transition-colors hover:bg-muted/60"
-  >
-    <a
-  href={gptRef}
-  target="_blank"
->
-    Open ChatGpt with the generated prompt
-    </a>
-  </button> 
     </div>
     </div>
     </>

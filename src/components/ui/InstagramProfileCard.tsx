@@ -1,6 +1,5 @@
 import Image from "next/image";
 import React from "react";
-import { TrendingUp } from "lucide-react";
 
 interface InstagramProfileCardProps {
   imageUrl: string;
@@ -9,9 +8,8 @@ interface InstagramProfileCardProps {
   followers: number;
   followings: number;
   mediaCount: number;
-  avgLikes: number;
-  averageEngagementRate: number;
-  averageCommentsPerPost: number;
+  onSaveAccount?: () => void;
+  isAccountSaved?: boolean;
 }
 
 const InstagramProfileCard: React.FC<InstagramProfileCardProps> = ({
@@ -21,67 +19,54 @@ const InstagramProfileCard: React.FC<InstagramProfileCardProps> = ({
   followers, 
   followings,
   mediaCount,
-  avgLikes,
-  averageEngagementRate,
-  averageCommentsPerPost
+  onSaveAccount,
+  isAccountSaved = false,
 }) => {
+  const handle = accountName.startsWith("@") ? accountName : `@${accountName}`;
+
+  const stats = [
+    { label: "Followers", value: followers },
+    { label: "Posts", value: mediaCount },
+    { label: "Following", value: followings },
+  ];
+
   return (
-    <div className='flex flex-col items-center'>
-      {/* Profile Image */}
-      <Image
-        src={imageUrl}
-        alt='Profile'
-        className='w-24 h-24 rounded-full object-cover mb-4'
-        width={96}
-        height={96}
-      />
-
-      {/* Account Name */}
-      <div className='text-2xl font-semibold text-foreground'>{accountName}</div>
-
-      {/* Description */}
-      <div className='text-muted-foreground text-center mt-2'>{description}</div>
-      <div className='w-full mt-4'>
-        {/* Metrics Analysis Section */}
-        <div>
-          <h3 className='text-lg font-semibold flex items-center gap-2'>
-            <TrendingUp className='h-5 w-5' />
-            Key Metrics
-          </h3>
-          <div className='mt-4 grid gap-4'>
-            <div className='grid grid-cols-2 gap-4'>
-              <div className='space-y-1'>
-                <p className='text-muted-foreground'>Followers</p>
-                <p className='text-2xl font-semibold'>{followers}</p>
-              </div>
-              <div className='space-y-1'>
-                <p className='text-muted-foreground'>Following</p>
-                <p className='text-2xl font-semibold'>{followings}</p>
-              </div>
-            </div>
-            <div className='space-y-2'>
-              <div className='flex justify-between'>
-                <span className='text-muted-foreground'>Total Posts</span>
-                <span className='font-medium'>{mediaCount}</span>
-              </div>
-              <div className='flex justify-between'>
-                <span className='text-muted-foreground'>Average ER</span>
-                <span className='font-medium'>{averageEngagementRate}%</span>
-              </div>
-              <div className='flex justify-between'>
-                <span className='text-muted-foreground'>
-                  Avg. Likes per Post
-                </span>
-                <span className='font-medium'>~{avgLikes}</span>
-              </div>
-              <div className='flex justify-between'>
-                <span className='text-muted-foreground'>Average Comments per Post</span>
-                <span className='font-medium'>{averageCommentsPerPost}</span>
-              </div>
-            </div>
+    <div className="rounded-3xl border border-border/60 bg-background/40 p-5 md:p-6">
+      <div className="flex items-start gap-4">
+        <Image
+          src={imageUrl}
+          alt="Profile"
+          className="h-20 w-20 rounded-full object-cover ring-4 ring-background md:h-24 md:w-24"
+          width={96}
+          height={96}
+        />
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-2xl font-semibold leading-tight text-foreground">{accountName}</h2>
+          <p className="mt-1 text-sm font-medium text-muted-foreground">{handle}</p>
+          <p className="mt-2 line-clamp-3 text-sm text-muted-foreground md:text-base">{description}</p>
           </div>
         </div>
+
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        {stats.map((stat) => (
+          <div key={stat.label} className="rounded-2xl border border-border/70 bg-card p-3 text-center">
+            <p className="text-lg font-semibold bg-brand-gradient bg-clip-text text-transparent md:text-xl">{stat.value}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{stat.label}</p>
+          </div>
+        ))}
       </div>
+      {onSaveAccount && (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            onClick={onSaveAccount}
+            disabled={isAccountSaved}
+            className="rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground shadow-soft transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isAccountSaved ? "Saved account" : "Save account"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

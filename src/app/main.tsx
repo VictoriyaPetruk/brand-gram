@@ -29,11 +29,11 @@ export default function MainPage() {
   };
 
   return (
-    <div className='flex flex-col justify-center items-center w-full max-w-screen-lg mt-10'>
+    <div className='mx-auto flex w-full max-w-screen-lg flex-col items-center justify-center mt-10 px-4 sm:px-6'>
       {/* Search Block */}
       <div className='p-8 bg-card rounded-3xl shadow-soft border border-border/50 w-full max-w-md mb-6'>
         <h1 className='text-2xl font-semibold mb-4 text-center text-foreground'>
-          How AI rates your Instagram?⭐
+          Put your Instagram username⭐
         </h1>
 
         <div className='mb-4'>

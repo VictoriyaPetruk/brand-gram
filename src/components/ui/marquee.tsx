@@ -1,14 +1,13 @@
 import { cn } from "@/lib/utils";
+import { HTMLAttributes } from "react";
 
-interface MarqueeProps {
+interface MarqueeProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
   reverse?: boolean;
   pauseOnHover?: boolean;
   children?: React.ReactNode;
   vertical?: boolean;
   repeat?: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any 
-  [key: string]: any;
 }
 
 export default function Marquee({

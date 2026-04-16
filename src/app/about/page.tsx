@@ -1,5 +1,6 @@
 // pages/about.tsx
 import React from "react";
+import Image from "next/image";
 
 const GPT_PROMPTS = [
   {
@@ -79,10 +80,12 @@ export default function About(): JSX.Element {
 
               {/* Placeholder frame for Instagram feed (replace with your embed/iframe or component) */}
               <div className="mt-4 border rounded-md overflow-hidden">
-              <img
+              <Image
                 src="/feed.jpg"
                 alt="BrandGram Instagram preview"
                 className="w-full h-106 object-cover"
+                width={1200}
+                height={1600}
               />
               </div>
             </div>

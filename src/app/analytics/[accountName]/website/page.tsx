@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { BusinessDiscovery, LinkItem, mapBusinessDiscoveryToRequestGpt, MediaItem, SlideFlow, WebSiteResponseGpt } from "../data.mock";
 import UseGptSlides from "../useGptSlides";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -75,7 +76,7 @@ export default function ProfilePage({ params }: PageProps) {
     if (resolvedParams?.accountName) {
       fetchData(); 
     }
-  }, [username]);
+  }, [resolvedParams.accountName, router, username]);
 
   const linkClass = `bg-white text-${color}-800 font-semibold py-4 rounded-full text-center
   shadow-md ${shadowHoverColor} hover:scale-105 transform transition text-lg`;
@@ -89,10 +90,16 @@ export default function ProfilePage({ params }: PageProps) {
   return (
   <div className="bg-[#FFFFFF] min-h-screen px-6 py-10 flex flex-col items-center">
     <div className="text-center mb-6 max-w-3xl w-full">
-        <img
-      src={igData?.profile_picture_url}
-      className="mx-auto w-28 h-28 rounded-full shadow-lg"
-    />
+        {igData?.profile_picture_url && (
+          <Image
+            src={igData.profile_picture_url}
+            alt={`${username} profile picture`}
+            className="mx-auto w-28 h-28 rounded-full shadow-lg"
+            width={112}
+            height={112}
+            unoptimized
+          />
+        )}
     <h1 className="text-3xl font-bold mt-3 text-black">
       <a
         href={`https://instagram.com/${username}`}
@@ -124,10 +131,13 @@ export default function ProfilePage({ params }: PageProps) {
       }`}
     >
       {post && (
-        <img
+        <Image
           src={post.media_url}
           alt={`Post ${i}`}
           className={picCoverClass}
+          width={1200}
+          height={1200}
+          unoptimized
         />
       )}
       <div className="w-full md:w-1/2">

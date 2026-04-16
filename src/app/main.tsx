@@ -33,7 +33,7 @@ export default function MainPage() {
       {/* Search Block */}
       <div className='p-8 bg-card rounded-3xl shadow-soft border border-border/50 w-full max-w-md mb-6'>
         <h1 className='text-2xl font-semibold mb-4 text-center text-foreground'>
-          Put your Instagram username⭐
+          AI magic for your Instagram⭐
         </h1>
 
         <div className='mb-4'>

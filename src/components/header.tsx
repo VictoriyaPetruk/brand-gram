@@ -38,7 +38,7 @@ const Header = () => {
               <CharacterMascot energy={8} sessionType="hobby" size="compact" showSublabel={false} />
             </div>
           </Link>
-          <h1 className="text-foreground text-base sm:text-lg font-bold tracking-tight">
+          <h1 className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 bg-clip-text text-base font-bold tracking-tight text-transparent sm:text-lg">
             Content Lab
           </h1>
         </div>

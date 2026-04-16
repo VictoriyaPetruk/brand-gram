@@ -9,7 +9,12 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import UseGptAnalytics from "./useGptAnalytics";
 import Header from "@/components/header";
-import { getCachedGptAnalytics, resolveCachedAccountData } from "@/lib/instagram-cache";
+import {
+  getCachedGptAnalytics,
+  resolveCachedAccountData,
+  setCachedGptAnalytics,
+  setCachedIgData,
+} from "@/lib/instagram-cache";
 import { addSavedAccount, isAccountSaved } from "@/lib/saved-accounts";
 
 type AnalyticsPageProps = {
@@ -31,16 +36,16 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   useEffect(() => {
     const fetchData = async () => {
       const routeAccount = resolvedParams.accountName.trim().toLowerCase();
-      const cachedAccount = resolveCachedAccountData(routeAccount);
+      const cachedAccount = await resolveCachedAccountData(routeAccount);
 
       const applyContext = async (igContext: BusinessDiscovery, accountKey: string) => {
-        const existingAnalytics = getCachedGptAnalytics(accountKey);
+        const existingAnalytics = await getCachedGptAnalytics(accountKey);
         let analytics = existingAnalytics;
         if (!analytics) {
           const modelRequest = mapBusinessDiscoveryToRequestGpt(igContext);
           analytics = await UseGptAnalytics(JSON.stringify(modelRequest));
           if (analytics) {
-            localStorage.setItem(`${accountKey}-gpt-analytics`, JSON.stringify(analytics));
+            await setCachedGptAnalytics(accountKey, analytics);
           }
         }
 
@@ -50,7 +55,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
           return;
         }
 
-        localStorage.setItem(`${accountKey}-igdata`, JSON.stringify(igContext));
+        await setCachedIgData(accountKey, igContext);
         setIgData(igContext);
         setGptData(analytics);
         setIsModelValid(true);
@@ -70,7 +75,7 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
         );
   
         if (!response.ok) {
-          throw new Error("Something went wrong");
+          throw new Error(`Instagram API request failed (${response.status} ${response.statusText})`);
         }
   
         const data = await response.json();
@@ -86,12 +91,13 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
           await applyContext(data.business_discovery, routeAccount);
         }
       
-      } catch (error) {
-        console.error("Error parsing the data:", error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Error loading analytics data:", errorMessage, error);
         if (cachedAccount) {
           await applyContext(cachedAccount.igData, cachedAccount.accountKey);
         } else {
-          setMessage("Could not load this account and no local cache was found.");
+          setMessage(`Could not load this account and no local cache was found. ${errorMessage}`);
           setIsModelValid(false);
         }
       } finally {
@@ -105,8 +111,16 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
   }, [resolvedParams?.accountName, isModelValid]);  
 
   useEffect(() => {
+    let cancelled = false;
     const activeAccountName = (Igdata?.username ?? resolvedParams.accountName ?? "").trim().toLowerCase();
-    setAccountSaved(isAccountSaved(activeAccountName));
+    void isAccountSaved(activeAccountName).then((saved) => {
+      if (!cancelled) {
+        setAccountSaved(saved);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [Igdata?.username, resolvedParams.accountName]);
 
   if (loading) return <LoadingSpinner />;
@@ -132,10 +146,10 @@ export default function AnalyticsPage({ params }: AnalyticsPageProps) {
     return post.like_count > max.like_count ? post : max;
   }, Igdata?.media?.data?.[0]);
 
-  const handleSaveAccount = () => {
+  const handleSaveAccount = async () => {
     const activeAccountName = (Igdata?.username ?? resolvedParams.accountName ?? "").trim().toLowerCase();
     if (!activeAccountName) return;
-    addSavedAccount(activeAccountName);
+    await addSavedAccount(activeAccountName);
     setAccountSaved(true);
   };
   

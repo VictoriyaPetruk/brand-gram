@@ -1,6 +1,7 @@
 "use client";
 
 import { BusinessDiscovery, GptAnalytics } from "@/app/analytics/[accountName]/data.mock";
+import { getKvValue, listKvEntriesBySuffix, setKvValue } from "@/lib/browser-db";
 
 type CachedAccountData = {
   accountKey: string;
@@ -48,12 +49,12 @@ function parseCachedIgData(raw: string | null): BusinessDiscovery | null {
   }
 }
 
-export function resolveCachedAccountData(accountName: string): CachedAccountData | null {
+export async function resolveCachedAccountData(accountName: string): Promise<CachedAccountData | null> {
   if (typeof window === "undefined") return null;
 
   const target = normalizeAccountName(accountName);
   const directKey = `${target}-igdata`;
-  const directData = parseCachedIgData(localStorage.getItem(directKey));
+  const directData = parseCachedIgData(await getKvValue<string>(directKey));
   if (directData) {
     return { accountKey: target, igData: directData };
   }
@@ -61,12 +62,11 @@ export function resolveCachedAccountData(accountName: string): CachedAccountData
   let bestMatch: CachedAccountData | null = null;
   let bestScore = 0.75;
 
-  for (let i = 0; i < localStorage.length; i += 1) {
-    const key = localStorage.key(i);
-    if (!key || !key.endsWith("-igdata")) continue;
-
+  const entries = await listKvEntriesBySuffix("-igdata");
+  for (const entry of entries) {
+    const key = entry.key;
     const accountKey = normalizeAccountName(key.slice(0, -"-igdata".length));
-    const cachedData = parseCachedIgData(localStorage.getItem(key));
+    const cachedData = parseCachedIgData(typeof entry.value === "string" ? entry.value : null);
     if (!cachedData) continue;
 
     const username = normalizeAccountName(cachedData.username ?? "");
@@ -84,13 +84,20 @@ export function resolveCachedAccountData(accountName: string): CachedAccountData
   return bestMatch;
 }
 
-export function getCachedGptAnalytics(accountKey: string): GptAnalytics | null {
-  if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem(`${normalizeAccountName(accountKey)}-gpt-analytics`);
+export async function getCachedGptAnalytics(accountKey: string): Promise<GptAnalytics | null> {
+  const raw = await getKvValue<string>(`${normalizeAccountName(accountKey)}-gpt-analytics`);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as GptAnalytics;
   } catch {
     return null;
   }
+}
+
+export async function setCachedIgData(accountKey: string, igData: BusinessDiscovery): Promise<void> {
+  await setKvValue(`${normalizeAccountName(accountKey)}-igdata`, JSON.stringify(igData));
+}
+
+export async function setCachedGptAnalytics(accountKey: string, analytics: GptAnalytics): Promise<void> {
+  await setKvValue(`${normalizeAccountName(accountKey)}-gpt-analytics`, JSON.stringify(analytics));
 }

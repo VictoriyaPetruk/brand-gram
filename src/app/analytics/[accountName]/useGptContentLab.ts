@@ -1,4 +1,5 @@
 import { ContentLabResponse } from "./data.mock";
+import { getKvValue, setKvValue } from "@/lib/browser-db";
 
 type ContentLabRequest = {
   instagramJson: string;
@@ -28,9 +29,9 @@ export function isValidContentLabResponse(data: unknown): data is ContentLabResp
   );
 }
 
-function readIdeasFromStorageKey(accountKey: string): ContentLabResponse | null {
+async function readIdeasFromStorageKey(accountKey: string): Promise<ContentLabResponse | null> {
   try {
-    const raw = localStorage.getItem(contentLabIdeasStorageKey(accountKey));
+    const raw = await getKvValue<string>(contentLabIdeasStorageKey(accountKey));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     return isValidContentLabResponse(parsed) ? parsed : null;
@@ -40,22 +41,22 @@ function readIdeasFromStorageKey(accountKey: string): ContentLabResponse | null 
 }
 
 /** Read cached post ideas for an account from localStorage (browser only). */
-export function getCachedContentLabIdeas(
+export async function getCachedContentLabIdeas(
   accountKey: string,
   legacyCacheKey?: string | null
-): ContentLabResponse | null {
+): Promise<ContentLabResponse | null> {
   if (typeof window === "undefined" || !accountKey.trim()) return null;
-  const primary = readIdeasFromStorageKey(accountKey);
+  const primary = await readIdeasFromStorageKey(accountKey);
   if (primary) return primary;
   if (legacyCacheKey?.trim() && legacyCacheKey !== accountKey) {
-    return readIdeasFromStorageKey(legacyCacheKey);
+    return await readIdeasFromStorageKey(legacyCacheKey);
   }
   return null;
 }
 
-function writeCachedIdeas(accountKey: string, response: ContentLabResponse) {
+async function writeCachedIdeas(accountKey: string, response: ContentLabResponse) {
   try {
-    localStorage.setItem(contentLabIdeasStorageKey(accountKey), JSON.stringify(response));
+    await setKvValue(contentLabIdeasStorageKey(accountKey), JSON.stringify(response));
   } catch {
     // quota / private mode
   }
@@ -67,10 +68,10 @@ const useGptContentLab = async ({
   accountKey,
   legacyCacheKey,
 }: ContentLabRequest): Promise<ContentLabResponse | null> => {
-  const cached = getCachedContentLabIdeas(accountKey, legacyCacheKey);
+  const cached = await getCachedContentLabIdeas(accountKey, legacyCacheKey);
   if (cached) {
-    if (!readIdeasFromStorageKey(accountKey) && legacyCacheKey?.trim()) {
-      writeCachedIdeas(accountKey, cached);
+    if (!(await readIdeasFromStorageKey(accountKey)) && legacyCacheKey?.trim()) {
+      await writeCachedIdeas(accountKey, cached);
     }
     return cached;
   }
@@ -86,7 +87,7 @@ const useGptContentLab = async ({
     const data = (await res.json()) as unknown;
     if (!isValidContentLabResponse(data)) return null;
 
-    writeCachedIdeas(accountKey, data);
+    await writeCachedIdeas(accountKey, data);
     return data;
   } catch (error) {
     console.error("Content Lab request failed:", error);

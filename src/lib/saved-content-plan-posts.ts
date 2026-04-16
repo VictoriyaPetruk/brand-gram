@@ -1,6 +1,11 @@
 import type { ContentLabIdea, GeneratedPostContent } from "@/app/analytics/[accountName]/data.mock";
+import { emitStorageChange, getKvValue, removeKvValue, setKvValue } from "@/lib/browser-db";
 
 const STORAGE_KEY = "brandgram-saved-content-plan-posts";
+const VOLATILE_CACHE_KEYS = [
+  "brandgram-content-lab-generated-image-by-idea",
+  "brandgram-content-lab-generated-post-by-idea",
+] as const;
 
 export type SavedContentPlanPost = {
   id: string;
@@ -18,78 +23,154 @@ export type SavedContentPlanPostInput = Omit<SavedContentPlanPost, "id" | "saved
   postedAt?: number | null;
 };
 
+function normalizePost(post: unknown): GeneratedPostContent | null {
+  if (!post || typeof post !== "object") return null;
+  const p = post as Partial<GeneratedPostContent>;
+  if (typeof p.caption !== "string" || typeof p.imagePrompt !== "string" || typeof p.strategyNote !== "string") {
+    return null;
+  }
+  const hashtags = Array.isArray(p.hashtags)
+    ? p.hashtags.map((tag) => String(tag).trim()).filter((tag) => tag.length > 0)
+    : [];
+  return {
+    caption: p.caption,
+    hashtags,
+    imagePrompt: p.imagePrompt,
+    strategyNote: p.strategyNote,
+  };
+}
+
+function normalizeIdeaContext(
+  ideaContext: unknown
+): Pick<ContentLabIdea, "type" | "title" | "hook" | "color"> | null {
+  if (!ideaContext || typeof ideaContext !== "object") return null;
+  const ic = ideaContext as Partial<Pick<ContentLabIdea, "type" | "title" | "hook" | "color">>;
+  if (typeof ic.type !== "string" || typeof ic.title !== "string" || typeof ic.hook !== "string") return null;
+  return {
+    type: ic.type,
+    title: ic.title,
+    hook: ic.hook,
+    color: typeof ic.color === "string" && ic.color.trim().length > 0 ? ic.color : "#6366f1",
+  };
+}
+
 function parseStored(raw: string | null): SavedContentPlanPost[] {
   if (!raw) return [];
   try {
     const data = JSON.parse(raw) as unknown;
     if (!Array.isArray(data)) return [];
-    return data.filter((row): row is SavedContentPlanPost => {
-      if (!row || typeof row !== "object") return false;
-      const r = row as SavedContentPlanPost;
+    const out: SavedContentPlanPost[] = [];
+    for (const row of data) {
+      if (!row || typeof row !== "object") continue;
+      const r = row as Partial<SavedContentPlanPost>;
       if (typeof r.id !== "string" || typeof r.savedAt !== "number" || typeof r.accountName !== "string") {
-        return false;
+        continue;
       }
-      if (r.postedAt !== undefined && r.postedAt !== null && typeof r.postedAt !== "number") {
-        return false;
-      }
-      const p = r.post;
-      if (!p || typeof p !== "object") return false;
-      if (
-        typeof p.caption !== "string" ||
-        !Array.isArray(p.hashtags) ||
-        !p.hashtags.every((t) => typeof t === "string") ||
-        typeof p.imagePrompt !== "string" ||
-        typeof p.strategyNote !== "string"
-      ) {
-        return false;
-      }
-      if (r.imageUrl !== null && typeof r.imageUrl !== "string") return false;
-      if (r.ideaContext !== null && r.ideaContext !== undefined) {
-        const ic = r.ideaContext;
-        if (
-          typeof ic !== "object" ||
-          typeof ic.type !== "string" ||
-          typeof ic.title !== "string" ||
-          typeof ic.hook !== "string" ||
-          typeof ic.color !== "string"
-        ) {
-          return false;
-        }
-      }
-      return true;
-    });
+      const normalizedPost = normalizePost(r.post);
+      if (!normalizedPost) continue;
+      out.push({
+        id: r.id,
+        savedAt: r.savedAt,
+        postedAt: typeof r.postedAt === "number" ? r.postedAt : null,
+        accountName: r.accountName,
+        post: normalizedPost,
+        imageUrl: typeof r.imageUrl === "string" && r.imageUrl.trim().length > 0 ? r.imageUrl : null,
+        ideaContext: normalizeIdeaContext(r.ideaContext),
+      });
+    }
+    return out;
   } catch {
     return [];
   }
 }
 
-export function listSavedContentPlanPosts(): SavedContentPlanPost[] {
-  if (typeof window === "undefined") return [];
-  return parseStored(localStorage.getItem(STORAGE_KEY)).map((row) => ({
+export async function listSavedContentPlanPosts(): Promise<SavedContentPlanPost[]> {
+  const raw = await getKvValue<string>(STORAGE_KEY);
+  return parseStored(raw).map((row) => ({
     ...row,
     postedAt: row.postedAt ?? null,
     ideaContext: row.ideaContext ?? null,
   }));
 }
 
-function writeAll(items: SavedContentPlanPost[]) {
+async function writeAll(items: SavedContentPlanPost[]) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    await setKvValue(STORAGE_KEY, JSON.stringify(items));
+    emitStorageChange("saved-content-plan-posts-changed");
+    return true;
   } catch {
     // quota / private mode
+    return false;
   }
 }
 
-export function addSavedContentPlanPost(entry: SavedContentPlanPostInput): void {
+async function clearVolatileCaches() {
+  for (const key of VOLATILE_CACHE_KEYS) {
+    try {
+      await removeKvValue(key);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+async function writeAllWithImageFallback(
+  items: SavedContentPlanPost[],
+  fallbackRowId?: string
+): Promise<boolean> {
+  if (await writeAll(items)) return true;
+  // Free non-critical caches first, then retry with original payload.
+  await clearVolatileCaches();
+  if (await writeAll(items)) return true;
+  if (items.length === 0) return false;
+
+  // Prefer keeping image on the newly written row; strip older rows first.
+  const progressive = [...items];
+  for (let i = progressive.length - 1; i >= 0; i -= 1) {
+    if (progressive[i]?.id === fallbackRowId) continue;
+    if (!progressive[i]?.imageUrl) continue;
+    progressive[i] = { ...progressive[i], imageUrl: null };
+    if (await writeAll(progressive)) return true;
+  }
+  // Then drop oldest rows while keeping newest (index 0 = newest/newly saved).
+  for (let keepCount = progressive.length - 1; keepCount >= 1; keepCount -= 1) {
+    const trimmed = progressive.slice(0, keepCount);
+    if (await writeAll(trimmed)) return true;
+  }
+
+  // Absolute last resort: strip image from the newly written row.
+  const targetedFallback = progressive.map((row) =>
+    row.id === fallbackRowId ? { ...row, imageUrl: null } : row
+  );
+  if (await writeAll(targetedFallback)) return true;
+  // Last resort: keep newest rows (including the just-saved row at index 0)
+  // and drop oldest rows until write succeeds (with the new row image removed).
+  for (let keepCount = targetedFallback.length - 1; keepCount >= 1; keepCount -= 1) {
+    const trimmed = targetedFallback.slice(0, keepCount);
+    if (await writeAll(trimmed)) return true;
+  }
+  return false;
+}
+
+export async function addSavedContentPlanPost(entry: SavedContentPlanPostInput): Promise<void> {
   if (typeof window === "undefined") return;
+  const normalizedPost = normalizePost(entry.post);
+  if (!normalizedPost) return;
+  const normalizedImageUrl =
+    typeof entry.imageUrl === "string" && entry.imageUrl.trim().length > 0
+      ? entry.imageUrl.trim()
+      : null;
   const row: SavedContentPlanPost = {
     ...entry,
     id: crypto.randomUUID(),
     savedAt: Date.now(),
     postedAt: entry.postedAt ?? null,
+    post: normalizedPost,
+    imageUrl: normalizedImageUrl,
+    ideaContext: normalizeIdeaContext(entry.ideaContext),
   };
-  const existing = listSavedContentPlanPosts();
-  writeAll([row, ...existing]);
+  const existing = await listSavedContentPlanPosts();
+  await writeAllWithImageFallback([row, ...existing], row.id);
 }
 
 function sameIdeaContext(
@@ -104,27 +185,36 @@ function sameIdeaContext(
 export function findSavedContentPlanPostByContext(
   accountName: string,
   ideaContext: SavedContentPlanPost["ideaContext"]
-): SavedContentPlanPost | null {
-  if (typeof window === "undefined") return null;
+): Promise<SavedContentPlanPost | null> {
+  if (typeof window === "undefined") return Promise.resolve(null);
   const normalizedAccount = accountName.trim().toLowerCase();
-  const existing = listSavedContentPlanPosts();
-  return (
-    existing.find(
-      (row) =>
-        row.accountName.trim().toLowerCase() === normalizedAccount &&
-        sameIdeaContext(row.ideaContext ?? null, ideaContext ?? null)
-    ) ?? null
+  return listSavedContentPlanPosts().then(
+    (existing) =>
+      existing.find(
+        (row) =>
+          row.accountName.trim().toLowerCase() === normalizedAccount &&
+          sameIdeaContext(row.ideaContext ?? null, ideaContext ?? null)
+      ) ?? null
   );
 }
 
-export function upsertSavedContentPlanPost(entry: SavedContentPlanPostInput): "created" | "updated" {
-  if (typeof window === "undefined") return "created";
+export async function upsertSavedContentPlanPost(
+  entry: SavedContentPlanPostInput
+): Promise<"created" | "updated" | "failed"> {
+  if (typeof window === "undefined") return "failed";
+  const normalizedPost = normalizePost(entry.post);
+  if (!normalizedPost) return "failed";
+  const normalizedIdeaContext = normalizeIdeaContext(entry.ideaContext);
+  const normalizedImageUrl =
+    typeof entry.imageUrl === "string" && entry.imageUrl.trim().length > 0
+      ? entry.imageUrl.trim()
+      : null;
   const normalizedAccount = entry.accountName.trim().toLowerCase();
-  const existing = listSavedContentPlanPosts();
+  const existing = await listSavedContentPlanPosts();
   const index = existing.findIndex(
     (row) =>
       row.accountName.trim().toLowerCase() === normalizedAccount &&
-      sameIdeaContext(row.ideaContext ?? null, entry.ideaContext ?? null)
+      sameIdeaContext(row.ideaContext ?? null, normalizedIdeaContext)
   );
   if (index === -1) {
     const row: SavedContentPlanPost = {
@@ -132,9 +222,11 @@ export function upsertSavedContentPlanPost(entry: SavedContentPlanPostInput): "c
       id: crypto.randomUUID(),
       savedAt: Date.now(),
       postedAt: entry.postedAt ?? null,
+      post: normalizedPost,
+      imageUrl: normalizedImageUrl,
+      ideaContext: normalizedIdeaContext,
     };
-    writeAll([row, ...existing]);
-    return "created";
+    return (await writeAllWithImageFallback([row, ...existing], row.id)) ? "created" : "failed";
   }
   const prev = existing[index];
   const nextRow: SavedContentPlanPost = {
@@ -142,21 +234,24 @@ export function upsertSavedContentPlanPost(entry: SavedContentPlanPostInput): "c
     id: prev.id,
     savedAt: Date.now(),
     postedAt: entry.postedAt ?? prev.postedAt ?? null,
+    post: normalizedPost,
+    imageUrl: normalizedImageUrl,
+    ideaContext: normalizedIdeaContext,
   };
   const next = [...existing];
   next.splice(index, 1);
-  writeAll([nextRow, ...next]);
-  return "updated";
+  return (await writeAllWithImageFallback([nextRow, ...next], nextRow.id)) ? "updated" : "failed";
 }
 
-export function removeSavedContentPlanPost(id: string): void {
+export async function removeSavedContentPlanPost(id: string): Promise<void> {
   if (typeof window === "undefined") return;
-  writeAll(listSavedContentPlanPosts().filter((row) => row.id !== id));
+  const items = await listSavedContentPlanPosts();
+  await writeAll(items.filter((row) => row.id !== id));
 }
 
-export function markSavedContentPlanPostPosted(id: string, posted: boolean): void {
+export async function markSavedContentPlanPostPosted(id: string, posted: boolean): Promise<void> {
   if (typeof window === "undefined") return;
-  const next = listSavedContentPlanPosts().map((row) =>
+  const next = (await listSavedContentPlanPosts()).map((row) =>
     row.id === id
       ? {
           ...row,
@@ -164,5 +259,5 @@ export function markSavedContentPlanPostPosted(id: string, posted: boolean): voi
         }
       : row
   );
-  writeAll(next);
+  await writeAll(next);
 }

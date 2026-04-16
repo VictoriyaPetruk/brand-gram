@@ -10,6 +10,12 @@ import {
   removeSavedContentPlanPost,
   type SavedContentPlanPost,
 } from "@/lib/saved-content-plan-posts";
+import {
+  isSavedContentPlanPostImageRef,
+  getSavedContentPlanPostImage,
+  removeSavedContentPlanPostImage,
+} from "@/lib/saved-content-plan-post-images";
+import { subscribeStorageChange } from "@/lib/browser-db";
 
 function formatHashtag(tag: string) {
   const t = tag.trim();
@@ -20,24 +26,60 @@ export default function SavedPostsPage() {
   const [items, setItems] = useState<SavedContentPlanPost[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  const refresh = useCallback(() => {
-    setItems(listSavedContentPlanPosts());
+  const refresh = useCallback(async () => {
+    setItems(await listSavedContentPlanPosts());
   }, []);
 
   useEffect(() => {
-    refresh();
+    void refresh();
     setHydrated(true);
   }, [refresh]);
 
-  const handleRemove = (id: string) => {
-    removeSavedContentPlanPost(id);
-    refresh();
+  useEffect(() => {
+    const handleFocus = () => void refresh();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void refresh();
+      }
+    };
+    const unsubscribe = subscribeStorageChange((event) => {
+      if (event === "saved-content-plan-posts-changed" || event === "saved-content-plan-images-changed") {
+        void refresh();
+      }
+    });
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      unsubscribe();
+    };
+  }, [refresh]);
+
+  const handleRemove = async (row: SavedContentPlanPost) => {
+    await removeSavedContentPlanPostImage(row.accountName, row.post);
+    await removeSavedContentPlanPost(row.id);
+    await refresh();
   };
 
-  const handleMarkAsPosted = (id: string, isPosted: boolean) => {
-    markSavedContentPlanPostPosted(id, !isPosted);
-    refresh();
+  const handleMarkAsPosted = async (id: string, isPosted: boolean) => {
+    await markSavedContentPlanPostPosted(id, !isPosted);
+    await refresh();
   };
+
+  const [rowImageMap, setRowImageMap] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    void (async () => {
+      const nextMap: Record<string, string | null> = {};
+      for (const row of items) {
+        const fromMap = await getSavedContentPlanPostImage(row.accountName, row.post);
+        nextMap[row.id] = fromMap ?? (isSavedContentPlanPostImageRef(row.imageUrl) ? null : row.imageUrl ?? null);
+      }
+      setRowImageMap(nextMap);
+    })();
+  }, [items]);
 
   return (
     <>
@@ -83,15 +125,15 @@ export default function SavedPostsPage() {
                     <div className="relative aspect-[1080/1350] max-h-[420px] bg-[#111b38] lg:max-h-none">
                       <button
                         type="button"
-                        onClick={() => handleRemove(row.id)}
+                        onClick={() => handleRemove(row)}
                         aria-label="Delete this saved post"
                         className="absolute right-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-destructive hover:text-white"
                       >
                         <Trash2 className="h-4 w-4" aria-hidden />
                       </button>
-                      {row.imageUrl ? (
+                      {rowImageMap[row.id] ? (
                         // eslint-disable-next-line @next/next/no-img-element -- arbitrary saved URLs
-                        <img src={row.imageUrl} alt="" className="h-full w-full object-cover" />
+                        <img src={rowImageMap[row.id] ?? ""} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-2 p-6 text-center text-sm text-white/70">
                           <span className="text-3xl" aria-hidden>
@@ -189,7 +231,7 @@ export default function SavedPostsPage() {
                         </Link>
                         <button
                           type="button"
-                          onClick={() => handleRemove(row.id)}
+                          onClick={() => handleRemove(row)}
                           aria-label="Delete this saved post"
                           className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                         >

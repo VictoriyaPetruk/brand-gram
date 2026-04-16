@@ -1,8 +1,10 @@
 import type { ContentLabIdea, GeneratedPostContent } from "@/app/analytics/[accountName]/data.mock";
 import { ideaFingerprint } from "@/lib/saved-content-lab-ideas";
+import { emitStorageChange, getKvValue, setKvValue } from "@/lib/browser-db";
 
 const STORAGE_KEY = "brandgram-content-lab-generated-post-by-idea";
 const IMAGE_STORAGE_KEY = "brandgram-content-lab-generated-image-by-idea";
+type CachedGeneratedPostRecord = GeneratedPostContent & { imageUrl?: string };
 
 function isValidGeneratedPostContent(data: unknown): data is GeneratedPostContent {
   if (!data || typeof data !== "object") return false;
@@ -17,17 +19,20 @@ function isValidGeneratedPostContent(data: unknown): data is GeneratedPostConten
   );
 }
 
-function readMap(): Record<string, GeneratedPostContent> {
-  if (typeof window === "undefined") return {};
+async function readMap(): Promise<Record<string, CachedGeneratedPostRecord>> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = await getKvValue<string>(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as unknown;
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-    const out: Record<string, GeneratedPostContent> = {};
+    const out: Record<string, CachedGeneratedPostRecord> = {};
     for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
       if (isValidGeneratedPostContent(v)) {
-        out[k] = v;
+        const row = v as CachedGeneratedPostRecord;
+        out[k] =
+          typeof row.imageUrl === "string" && row.imageUrl.trim().length > 0
+            ? { ...row, imageUrl: row.imageUrl }
+            : { ...row };
       }
     }
     return out;
@@ -36,18 +41,18 @@ function readMap(): Record<string, GeneratedPostContent> {
   }
 }
 
-function writeMap(map: Record<string, GeneratedPostContent>) {
+async function writeMap(map: Record<string, CachedGeneratedPostRecord>) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    await setKvValue(STORAGE_KEY, JSON.stringify(map));
+    emitStorageChange("generated-post-cache-changed");
   } catch {
     // quota / private mode
   }
 }
 
-function readImageMap(): Record<string, string> {
-  if (typeof window === "undefined") return {};
+async function readImageMap(): Promise<Record<string, string>> {
   try {
-    const raw = localStorage.getItem(IMAGE_STORAGE_KEY);
+    const raw = await getKvValue<string>(IMAGE_STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as unknown;
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
@@ -63,9 +68,10 @@ function readImageMap(): Record<string, string> {
   }
 }
 
-function writeImageMap(map: Record<string, string>) {
+async function writeImageMap(map: Record<string, string>) {
   try {
-    localStorage.setItem(IMAGE_STORAGE_KEY, JSON.stringify(map));
+    await setKvValue(IMAGE_STORAGE_KEY, JSON.stringify(map));
+    emitStorageChange("generated-image-cache-changed");
   } catch {
     // quota / private mode
   }
@@ -75,40 +81,59 @@ function writeImageMap(map: Record<string, string>) {
 export function getCachedGeneratedPostForIdea(
   accountName: string,
   idea: ContentLabIdea
-): GeneratedPostContent | null {
+): Promise<GeneratedPostContent | null> {
   const fp = ideaFingerprint(accountName, idea);
-  const map = readMap();
-  const hit = map[fp];
-  return hit && isValidGeneratedPostContent(hit) ? hit : null;
+  return readMap().then((map) => {
+    const hit = map[fp];
+    return hit && isValidGeneratedPostContent(hit) ? hit : null;
+  });
 }
 
-export function setCachedGeneratedPostForIdea(
+export async function setCachedGeneratedPostForIdea(
   accountName: string,
   idea: ContentLabIdea,
   content: GeneratedPostContent
-): void {
+): Promise<void> {
   if (!isValidGeneratedPostContent(content)) return;
   const fp = ideaFingerprint(accountName, idea);
-  const map = readMap();
-  map[fp] = content;
-  writeMap(map);
+  const map = await readMap();
+  const imageMap = await readImageMap();
+  const prevImage = map[fp]?.imageUrl ?? imageMap[fp];
+  map[fp] =
+    typeof prevImage === "string" && prevImage.trim().length > 0
+      ? { ...content, imageUrl: prevImage }
+      : { ...content };
+  await writeMap(map);
 }
 
-export function getCachedGeneratedImageForIdea(accountName: string, idea: ContentLabIdea): string | null {
+export async function getCachedGeneratedImageForIdea(
+  accountName: string,
+  idea: ContentLabIdea
+): Promise<string | null> {
   const fp = ideaFingerprint(accountName, idea);
-  const map = readImageMap();
-  const hit = map[fp];
-  return typeof hit === "string" && hit.trim().length > 0 ? hit : null;
+  const imageMapHit = (await readImageMap())[fp];
+  if (typeof imageMapHit === "string" && imageMapHit.trim().length > 0) {
+    return imageMapHit;
+  }
+  const postMapHit = (await readMap())[fp]?.imageUrl;
+  return typeof postMapHit === "string" && postMapHit.trim().length > 0 ? postMapHit : null;
 }
 
-export function setCachedGeneratedImageForIdea(
+export async function setCachedGeneratedImageForIdea(
   accountName: string,
   idea: ContentLabIdea,
   imageUrl: string
-): void {
+): Promise<void> {
   if (typeof imageUrl !== "string" || imageUrl.trim().length === 0) return;
   const fp = ideaFingerprint(accountName, idea);
-  const map = readImageMap();
-  map[fp] = imageUrl;
-  writeImageMap(map);
+  const normalizedImageUrl = imageUrl.trim();
+  const map = await readImageMap();
+  map[fp] = normalizedImageUrl;
+  await writeImageMap(map);
+  const postMap = await readMap();
+  const post = postMap[fp];
+  if (post && isValidGeneratedPostContent(post)) {
+    postMap[fp] = { ...post, imageUrl: normalizedImageUrl };
+    await writeMap(postMap);
+  }
 }

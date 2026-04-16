@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { use, useEffect, useMemo, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import requestGptContentLab, {
@@ -23,10 +23,17 @@ import {
 } from "@/lib/content-lab-generated-post-cache";
 import { addSavedIdea, getSavedFingerprintSet, ideaFingerprint } from "@/lib/saved-content-lab-ideas";
 import {
+  addSavedContentPlanPost,
   findSavedContentPlanPostByContext,
   listSavedContentPlanPosts,
   upsertSavedContentPlanPost,
 } from "@/lib/saved-content-plan-posts";
+import {
+  buildSavedContentPlanPostImageRef,
+  getSavedContentPlanPostImage,
+  isSavedContentPlanPostImageRef,
+  setSavedContentPlanPostImage,
+} from "@/lib/saved-content-plan-post-images";
 import { getCachedGptAnalytics, resolveCachedAccountData } from "@/lib/instagram-cache";
 
 type PageProps = {
@@ -64,7 +71,11 @@ export default function ContentLabPage({ params }: PageProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const [usingMockIdeas, setUsingMockIdeas] = useState(false);
   const [savedFingerprints, setSavedFingerprints] = useState<Set<string>>(() => new Set());
+  const [cachedPostFingerprints, setCachedPostFingerprints] = useState<Set<string>>(() => new Set());
+  const [cachedIdeaImages, setCachedIdeaImages] = useState<Record<string, string | null>>({});
   const [contentPlanJustSaved, setContentPlanJustSaved] = useState(false);
+  const [isContentPlanVersionSaved, setIsContentPlanVersionSaved] = useState(false);
+  const [hasSavedContentPlanForIdea, setHasSavedContentPlanForIdea] = useState(false);
 
   const generateIdeas = async (contextIgData?: BusinessDiscovery, contextAnalyticsData?: GptAnalytics) => {
     const sourceIgData = contextIgData ?? igData;
@@ -104,9 +115,11 @@ export default function ContentLabPage({ params }: PageProps) {
       setIsLoadingContext(true);
       setErrorMessage("");
 
-      const cachedAccount = resolveCachedAccountData(resolvedParams.accountName);
+      const cachedAccount = await resolveCachedAccountData(resolvedParams.accountName);
       const parsedIgData = cachedAccount?.igData ?? null;
-      const parsedAnalyticsData = cachedAccount ? getCachedGptAnalytics(cachedAccount.accountKey) : null;
+      const parsedAnalyticsData = cachedAccount
+        ? await getCachedGptAnalytics(cachedAccount.accountKey)
+        : null;
 
       if (!parsedIgData || !parsedAnalyticsData) {
         setIdeas(MOCK_CONTENT_LAB_IDEAS);
@@ -122,7 +135,7 @@ export default function ContentLabPage({ params }: PageProps) {
 
         const routeAccount = cachedAccount?.accountKey ?? resolvedParams.accountName;
         const igUsername = parsedIgData.username?.trim() || null;
-        const cachedIdeas = getCachedContentLabIdeas(
+        const cachedIdeas = await getCachedContentLabIdeas(
           routeAccount,
           igUsername && igUsername !== routeAccount ? igUsername : null
         );
@@ -147,8 +160,25 @@ export default function ContentLabPage({ params }: PageProps) {
   }, [resolvedParams.accountName]);
 
   useEffect(() => {
-    setSavedFingerprints(getSavedFingerprintSet());
+    void getSavedFingerprintSet().then(setSavedFingerprints);
   }, [resolvedParams.accountName, ideas]);
+
+  useEffect(() => {
+    void (async () => {
+      const nextPostSet = new Set<string>();
+      const nextImageMap: Record<string, string | null> = {};
+      for (const idea of ideas) {
+        const fp = ideaFingerprint(resolvedParams.accountName, idea);
+        const cachedPost = await getCachedGeneratedPostForIdea(resolvedParams.accountName, idea);
+        if (cachedPost) {
+          nextPostSet.add(fp);
+        }
+        nextImageMap[fp] = await getCachedGeneratedImageForIdea(resolvedParams.accountName, idea);
+      }
+      setCachedPostFingerprints(nextPostSet);
+      setCachedIdeaImages(nextImageMap);
+    })();
+  }, [ideas, resolvedParams.accountName]);
 
   useEffect(() => {
     return () => {
@@ -172,14 +202,14 @@ export default function ContentLabPage({ params }: PageProps) {
     setGeneratedContent(null);
 
     if (!options?.bypassCache) {
-      const cached = getCachedGeneratedPostForIdea(resolvedParams.accountName, idea);
+      const cached = await getCachedGeneratedPostForIdea(resolvedParams.accountName, idea);
       if (cached) {
         setGeneratedContent(cached);
-        let cachedImage = getCachedGeneratedImageForIdea(resolvedParams.accountName, idea);
+        let cachedImage = await getCachedGeneratedImageForIdea(resolvedParams.accountName, idea);
         if (!cachedImage) {
           const normalizedAccount = resolvedParams.accountName.trim().toLowerCase();
-          const rows = listSavedContentPlanPosts().filter(
-            (row) => row.imageUrl && row.accountName.trim().toLowerCase() === normalizedAccount
+          const rows = (await listSavedContentPlanPosts()).filter(
+            (row) => row.accountName.trim().toLowerCase() === normalizedAccount
           );
           const savedMatch =
             rows.find((row) => {
@@ -197,9 +227,12 @@ export default function ContentLabPage({ params }: PageProps) {
                 row.post.strategyNote === cached.strategyNote
             ) ??
             rows.find((row) => row.post.imagePrompt === cached.imagePrompt);
-          if (savedMatch?.imageUrl) {
-            cachedImage = savedMatch.imageUrl;
-            setCachedGeneratedImageForIdea(resolvedParams.accountName, idea, savedMatch.imageUrl);
+          if (savedMatch) {
+            const savedImage = await getSavedContentPlanPostImage(resolvedParams.accountName, savedMatch.post);
+            if (savedImage) {
+              cachedImage = savedImage;
+              await setCachedGeneratedImageForIdea(resolvedParams.accountName, idea, savedImage);
+            }
           }
         }
         setGeneratedImageUrl(cachedImage);
@@ -235,7 +268,7 @@ export default function ContentLabPage({ params }: PageProps) {
       }
 
       const post = data as GeneratedPostContent;
-      setCachedGeneratedPostForIdea(resolvedParams.accountName, idea, post);
+      await setCachedGeneratedPostForIdea(resolvedParams.accountName, idea, post);
       setGeneratedContent(post);
     } catch (e) {
       console.error(e);
@@ -275,7 +308,8 @@ export default function ContentLabPage({ params }: PageProps) {
         return;
       }
 
-      const nextImageUrl = data?.imageDataUrl || data?.imageUrl || "";
+      // Prefer stable remote URL for persistence; data URLs can exceed localStorage quota.
+      const nextImageUrl = data?.imageUrl || data?.imageDataUrl || "";
       if (!nextImageUrl) {
         setErrorMessage("Could not generate image. Try again.");
         return;
@@ -284,7 +318,7 @@ export default function ContentLabPage({ params }: PageProps) {
       setGeneratedImageUrl(nextImageUrl);
       const selectedIdea = ideas[selectedIdeaIndex];
       if (selectedIdea) {
-        setCachedGeneratedImageForIdea(resolvedParams.accountName, selectedIdea, nextImageUrl);
+        await setCachedGeneratedImageForIdea(resolvedParams.accountName, selectedIdea, nextImageUrl);
       }
     } catch (error) {
       console.error(error);
@@ -310,28 +344,53 @@ export default function ContentLabPage({ params }: PageProps) {
     selectedIdeaIndex !== null && (generatedContent !== null || isGeneratingPostContent);
   const showContentSkeleton = isGeneratingPostContent && generatedContent === null;
   const selectedIdea = selectedIdeaIndex !== null ? ideas[selectedIdeaIndex] ?? null : null;
-  const matchingSavedContentPlanPost = useMemo(() => {
-    if (!selectedIdea) return null;
-    return findSavedContentPlanPostByContext(resolvedParams.accountName, {
+  const currentImageUrlForComparison =
+    selectedIdea && !generatedImageUrl
+      ? cachedIdeaImages[ideaFingerprint(resolvedParams.accountName, selectedIdea)] ?? null
+      : generatedImageUrl;
+  const isCurrentVersionSaved = isContentPlanVersionSaved;
+  const contentPlanButtonLabel = contentPlanJustSaved
+    ? "✓ Saved"
+    : isCurrentVersionSaved
+      ? "Saved"
+      : hasSavedContentPlanForIdea
+        ? "Update content plan"
+        : "📋 Save to Content Plan";
+
+  useEffect(() => {
+    if (!selectedIdea || !generatedContent) {
+      setHasSavedContentPlanForIdea(false);
+      setIsContentPlanVersionSaved(false);
+      return;
+    }
+    void (async () => {
+      const saved = await findSavedContentPlanPostByContext(resolvedParams.accountName, {
       type: selectedIdea.type,
       title: selectedIdea.title,
       hook: selectedIdea.hook,
       color: selectedIdea.color,
     });
-  }, [resolvedParams.accountName, selectedIdea]);
-  const isCurrentVersionSaved = Boolean(
-    generatedContent &&
-      matchingSavedContentPlanPost &&
-      arePostsEqual(matchingSavedContentPlanPost.post, generatedContent) &&
-      (matchingSavedContentPlanPost.imageUrl ?? null) === (generatedImageUrl ?? null)
-  );
-  const contentPlanButtonLabel = contentPlanJustSaved
-    ? "✓ Saved"
-    : isCurrentVersionSaved
-      ? "Saved to Content Plan"
-      : matchingSavedContentPlanPost
-        ? "Update in Content Plan"
-        : "📋 Save to Content Plan";
+      const savedImage = saved
+        ? ((isSavedContentPlanPostImageRef(saved.imageUrl)
+            ? await getSavedContentPlanPostImage(resolvedParams.accountName, saved.post)
+            : saved.imageUrl) ?? null)
+        : null;
+      setHasSavedContentPlanForIdea(Boolean(saved));
+      setIsContentPlanVersionSaved(
+        Boolean(
+          saved &&
+            arePostsEqual(saved.post, generatedContent) &&
+            savedImage === (currentImageUrlForComparison ?? null)
+        )
+      );
+    })();
+  }, [
+    resolvedParams.accountName,
+    selectedIdea,
+    generatedContent,
+    generatedImageUrl,
+    currentImageUrlForComparison,
+  ]);
 
   useEffect(() => {
     if (selectedIdeaIndex === null) return;
@@ -411,7 +470,7 @@ export default function ContentLabPage({ params }: PageProps) {
 
           {ideas.length > 0 && (
             <div className="mt-8">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-[#111b38]">
+              <h1 className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 bg-clip-text text-2xl font-black tracking-tight text-transparent sm:text-3xl md:text-4xl">
                 {"\u2728"} Content Lab
               </h1>
               <p className="mt-2 text-xl sm:text-2xl md:text-[32px] text-[#6b7280]">
@@ -430,9 +489,7 @@ export default function ContentLabPage({ params }: PageProps) {
                 {ideas.map((idea, index) => {
                   const ideaFp = ideaFingerprint(resolvedParams.accountName, idea);
                   const isIdeaSaved = savedFingerprints.has(ideaFp);
-                  const hasGeneratedContent = Boolean(
-                    getCachedGeneratedPostForIdea(resolvedParams.accountName, idea)
-                  );
+                  const hasGeneratedContent = cachedPostFingerprints.has(ideaFp);
                   return (
                   <article
                     key={`${idea.title}-${index}`}
@@ -453,8 +510,8 @@ export default function ContentLabPage({ params }: PageProps) {
                     <div className="mt-6 flex flex-col gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          const result = addSavedIdea(resolvedParams.accountName, idea);
+                        onClick={async () => {
+                          const result = await addSavedIdea(resolvedParams.accountName, idea);
                           if (result.ok) {
                             setSavedFingerprints((prev) => new Set(prev).add(ideaFp));
                           }
@@ -700,14 +757,54 @@ export default function ContentLabPage({ params }: PageProps) {
                     <button
                       type="button"
                       className="btn-exp sec disabled:cursor-not-allowed disabled:opacity-50"
-                      disabled={showContentSkeleton || !generatedContent || isCurrentVersionSaved}
-                      onClick={() => {
+                      disabled={
+                        showContentSkeleton || !generatedContent || isCurrentVersionSaved || isGeneratingImage
+                      }
+                      onClick={async () => {
                         if (!generatedContent || selectedIdeaIndex === null) return;
+                        if (isGeneratingImage) {
+                          setErrorMessage("Wait for image generation to finish before saving.");
+                          return;
+                        }
                         const idea = ideas[selectedIdeaIndex];
-                        upsertSavedContentPlanPost({
+                        const existingSavedForIdea = idea
+                          ? await findSavedContentPlanPostByContext(resolvedParams.accountName, {
+                              type: idea.type,
+                              title: idea.title,
+                              hook: idea.hook,
+                              color: idea.color,
+                            })
+                          : null;
+                        const imageUrlToSave =
+                          generatedImageUrl ??
+                          (idea ? await getCachedGeneratedImageForIdea(resolvedParams.accountName, idea) : null) ??
+                          (existingSavedForIdea
+                            ? await getSavedContentPlanPostImage(
+                                resolvedParams.accountName,
+                                existingSavedForIdea.post
+                              )
+                            : null) ??
+                          null;
+                        const normalizedImageUrlToSave =
+                          typeof imageUrlToSave === "string" && imageUrlToSave.trim().length > 0
+                            ? imageUrlToSave.trim()
+                            : null;
+                        const postToSave: GeneratedPostContent = {
+                          ...generatedContent,
+                          imagePrompt: editableImagePrompt.trim() || generatedContent.imagePrompt,
+                        };
+                        // Keep in-memory state in sync with what we persist,
+                        // so the "Saved" state comparison matches.
+                        setGeneratedContent(postToSave);
+                        setGeneratedImageUrl(normalizedImageUrlToSave);
+                        const imageRefForSavedRow = normalizedImageUrlToSave
+                          ? buildSavedContentPlanPostImageRef(resolvedParams.accountName, postToSave)
+                          : null;
+                        // Phase 1: always persist the post row first (without image dependency).
+                        const saveResult = await upsertSavedContentPlanPost({
                           accountName: resolvedParams.accountName,
-                          post: generatedContent,
-                          imageUrl: generatedImageUrl,
+                          post: postToSave,
+                          imageUrl: null,
                           ideaContext: idea
                             ? {
                                 type: idea.type,
@@ -717,6 +814,79 @@ export default function ContentLabPage({ params }: PageProps) {
                               }
                             : null,
                         });
+                        if (saveResult === "failed") {
+                          setErrorMessage(
+                            "Could not save to browser storage. Try clearing site data or saving without generated image."
+                          );
+                          return;
+                        }
+                        let savedAfterWrite = idea
+                          ? await findSavedContentPlanPostByContext(resolvedParams.accountName, {
+                              type: idea.type,
+                              title: idea.title,
+                              hook: idea.hook,
+                              color: idea.color,
+                            })
+                          : null;
+                        if (!savedAfterWrite) {
+                          await addSavedContentPlanPost({
+                            accountName: resolvedParams.accountName,
+                            post: postToSave,
+                            imageUrl: imageRefForSavedRow,
+                            ideaContext: idea
+                              ? {
+                                  type: idea.type,
+                                  title: idea.title,
+                                  hook: idea.hook,
+                                  color: idea.color,
+                                }
+                              : null,
+                          });
+                        }
+                        if (idea) {
+                          // Keep idea-scoped cache aligned with the latest saved content plan version.
+                          await setCachedGeneratedPostForIdea(resolvedParams.accountName, idea, postToSave);
+                          if (normalizedImageUrlToSave) {
+                            await setCachedGeneratedImageForIdea(
+                              resolvedParams.accountName,
+                              idea,
+                              normalizedImageUrlToSave
+                            );
+                          }
+                        }
+                        if (normalizedImageUrlToSave) {
+                          const imageMapSaved = await setSavedContentPlanPostImage(
+                            resolvedParams.accountName,
+                            postToSave,
+                            normalizedImageUrlToSave
+                          );
+                          // Phase 2: best-effort attach image reference to the saved row.
+                          if (imageMapSaved && imageRefForSavedRow) {
+                            await upsertSavedContentPlanPost({
+                              accountName: resolvedParams.accountName,
+                              post: postToSave,
+                              imageUrl: imageRefForSavedRow,
+                              ideaContext: idea
+                                ? {
+                                    type: idea.type,
+                                    title: idea.title,
+                                    hook: idea.hook,
+                                    color: idea.color,
+                                  }
+                                : null,
+                            });
+                            savedAfterWrite = idea
+                              ? await findSavedContentPlanPostByContext(resolvedParams.accountName, {
+                                  type: idea.type,
+                                  title: idea.title,
+                                  hook: idea.hook,
+                                  color: idea.color,
+                                })
+                              : null;
+                          }
+                        }
+                        setHasSavedContentPlanForIdea(true);
+                        setIsContentPlanVersionSaved(true);
                         setContentPlanJustSaved(true);
                         if (contentPlanSaveTimerRef.current !== null) {
                           window.clearTimeout(contentPlanSaveTimerRef.current);

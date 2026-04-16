@@ -7,6 +7,7 @@ import UseGptSlides from "../useGptSlides";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import PublishPopup from "./popup";
 import { resolveCachedAccountData } from "@/lib/instagram-cache";
+import { getKvValue } from "@/lib/browser-db";
 
 type PageProps = {
   params: Promise<{ accountName: string, hashtag: string }>;
@@ -29,8 +30,8 @@ export default function ProfilePage({ params }: PageProps) {
     const fetchData = async () => {
       try{
         setLoading(true);
-        const cachedAccount = resolveCachedAccountData(username);
-        const links = localStorage.getItem((cachedAccount?.accountKey ?? username)+"-links");
+        const cachedAccount = await resolveCachedAccountData(username);
+        const links = await getKvValue<string>((cachedAccount?.accountKey ?? username)+"-links");
         const igData = cachedAccount?.igData;
         if (igData) {
           

@@ -1,5 +1,7 @@
 "use client";
 
+import { emitStorageChange, getKvValue, setKvValue } from "@/lib/browser-db";
+
 const STORAGE_KEY = "saved-instagram-accounts-v1";
 
 export type SavedAccount = {
@@ -30,21 +32,21 @@ function parseStored(raw: string | null): SavedAccount[] {
   }
 }
 
-function writeAll(items: SavedAccount[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+async function writeAll(items: SavedAccount[]) {
+  await setKvValue(STORAGE_KEY, JSON.stringify(items));
+  emitStorageChange("saved-accounts-changed");
 }
 
-export function listSavedAccounts(): SavedAccount[] {
-  if (typeof window === "undefined") return [];
-  return parseStored(localStorage.getItem(STORAGE_KEY)).sort((a, b) => b.savedAt - a.savedAt);
+export async function listSavedAccounts(): Promise<SavedAccount[]> {
+  const raw = await getKvValue<string>(STORAGE_KEY);
+  return parseStored(raw).sort((a, b) => b.savedAt - a.savedAt);
 }
 
-export function addSavedAccount(accountName: string): { added: boolean } {
+export async function addSavedAccount(accountName: string): Promise<{ added: boolean }> {
   const normalized = normalizeAccountName(accountName);
   if (!normalized) return { added: false };
 
-  const existing = listSavedAccounts();
+  const existing = await listSavedAccounts();
   if (existing.some((row) => normalizeAccountName(row.accountName) === normalized)) {
     return { added: false };
   }
@@ -55,16 +57,18 @@ export function addSavedAccount(accountName: string): { added: boolean } {
     savedAt: Date.now(),
   };
 
-  writeAll([row, ...existing]);
+  await writeAll([row, ...existing]);
   return { added: true };
 }
 
-export function removeSavedAccount(id: string): void {
-  writeAll(listSavedAccounts().filter((row) => row.id !== id));
+export async function removeSavedAccount(id: string): Promise<void> {
+  const accounts = await listSavedAccounts();
+  await writeAll(accounts.filter((row) => row.id !== id));
 }
 
-export function isAccountSaved(accountName: string): boolean {
+export async function isAccountSaved(accountName: string): Promise<boolean> {
   const normalized = normalizeAccountName(accountName);
   if (!normalized) return false;
-  return listSavedAccounts().some((row) => normalizeAccountName(row.accountName) === normalized);
+  const accounts = await listSavedAccounts();
+  return accounts.some((row) => normalizeAccountName(row.accountName) === normalized);
 }

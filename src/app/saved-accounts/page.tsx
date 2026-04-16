@@ -5,23 +5,59 @@ import Link from "next/link";
 import { BookmarkX } from "lucide-react";
 import Header from "@/components/header";
 import { listSavedAccounts, removeSavedAccount, type SavedAccount } from "@/lib/saved-accounts";
+import { subscribeStorageChange } from "@/lib/browser-db";
+import { resolveCachedAccountData } from "@/lib/instagram-cache";
 
 export default function SavedAccountsPage() {
   const [items, setItems] = useState<SavedAccount[]>([]);
+  const [accountImages, setAccountImages] = useState<Record<string, string | null>>({});
   const [hydrated, setHydrated] = useState(false);
 
-  const refresh = useCallback(() => {
-    setItems(listSavedAccounts());
+  const refresh = useCallback(async () => {
+    setItems(await listSavedAccounts());
   }, []);
 
   useEffect(() => {
-    refresh();
+    void refresh();
     setHydrated(true);
   }, [refresh]);
 
-  const handleRemove = (id: string) => {
-    removeSavedAccount(id);
-    refresh();
+  useEffect(() => {
+    void (async () => {
+      const next: Record<string, string | null> = {};
+      for (const row of items) {
+        const cached = await resolveCachedAccountData(row.accountName);
+        next[row.id] = cached?.igData?.profile_picture_url ?? null;
+      }
+      setAccountImages(next);
+    })();
+  }, [items]);
+
+  useEffect(() => {
+    const handleFocus = () => void refresh();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void refresh();
+      }
+    };
+    const unsubscribe = subscribeStorageChange((event) => {
+      if (event === "saved-accounts-changed") {
+        void refresh();
+      }
+    });
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      unsubscribe();
+    };
+  }, [refresh]);
+
+  const handleRemove = async (id: string) => {
+    await removeSavedAccount(id);
+    await refresh();
   };
 
   return (
@@ -61,8 +97,22 @@ export default function SavedAccountsPage() {
                   key={row.id}
                   className="rounded-3xl border border-[#eceff5] bg-white p-5 shadow-[0_3px_14px_rgba(15,23,42,0.05)]"
                 >
+                  <div className="mb-4 flex items-center gap-3">
+                    {accountImages[row.id] ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- user-profile image URLs are external
+                      <img
+                        src={accountImages[row.id] ?? ""}
+                        alt={`@${row.accountName} profile`}
+                        className="h-12 w-12 rounded-full border border-border object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                        {row.accountName.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <h3 className="text-xl font-semibold text-foreground">@{row.accountName}</h3>
+                  </div>
                   <div className="text-xs text-muted-foreground">Saved {new Date(row.savedAt).toLocaleString()}</div>
-                  <h3 className="mt-2 text-xl font-semibold text-foreground">@{row.accountName}</h3>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href={`/analytics/${encodeURIComponent(row.accountName)}`}

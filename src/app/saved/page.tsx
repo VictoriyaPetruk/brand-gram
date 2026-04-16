@@ -5,23 +5,45 @@ import Link from "next/link";
 import { BookmarkX } from "lucide-react";
 import Header from "@/components/header";
 import { listSavedIdeas, removeSavedIdea, type SavedPostIdea } from "@/lib/saved-content-lab-ideas";
+import { subscribeStorageChange } from "@/lib/browser-db";
 
 export default function SavedIdeasPage() {
   const [items, setItems] = useState<SavedPostIdea[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  const refresh = useCallback(() => {
-    setItems(listSavedIdeas());
+  const refresh = useCallback(async () => {
+    setItems(await listSavedIdeas());
   }, []);
 
   useEffect(() => {
-    refresh();
+    void refresh();
     setHydrated(true);
   }, [refresh]);
 
-  const handleRemove = (id: string) => {
-    removeSavedIdea(id);
-    refresh();
+  useEffect(() => {
+    const handleFocus = () => void refresh();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void refresh();
+      }
+    };
+    const unsubscribe = subscribeStorageChange((event) => {
+      if (event === "saved-content-lab-ideas-changed") {
+        void refresh();
+      }
+    });
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      unsubscribe();
+    };
+  }, [refresh]);
+
+  const handleRemove = async (id: string) => {
+    await removeSavedIdea(id);
+    await refresh();
   };
 
   return (

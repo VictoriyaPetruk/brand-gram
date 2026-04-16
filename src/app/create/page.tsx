@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { setCachedIgData } from '@/lib/instagram-cache';
 
 export default function UsernameInputPage() {
   const [username, setUsername] = useState('');
@@ -38,10 +39,7 @@ export default function UsernameInputPage() {
         return;
       }
 
-      localStorage.setItem(
-        `${username}-igdata`,
-        JSON.stringify(data.business_discovery)
-      );
+      await setCachedIgData(username, data.business_discovery);
 
       router.push(`/analytics/${username}/flow`);
     } catch (e) {

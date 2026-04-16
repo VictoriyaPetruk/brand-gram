@@ -1,4 +1,5 @@
 import type { ContentLabIdea } from "@/app/analytics/[accountName]/data.mock";
+import { emitStorageChange, getKvValue, setKvValue } from "@/lib/browser-db";
 
 const STORAGE_KEY = "brandgram-saved-content-lab-ideas";
 
@@ -37,34 +38,35 @@ export function ideaFingerprint(accountName: string, idea: ContentLabIdea): stri
   return `${accountName.trim().toLowerCase()}|${idea.type}|${idea.title}|${idea.hook}`;
 }
 
-export function listSavedIdeas(): SavedPostIdea[] {
-  if (typeof window === "undefined") return [];
-  return parseStored(localStorage.getItem(STORAGE_KEY));
+export async function listSavedIdeas(): Promise<SavedPostIdea[]> {
+  const raw = await getKvValue<string>(STORAGE_KEY);
+  return parseStored(raw);
 }
 
-export function getSavedFingerprintSet(): Set<string> {
+export async function getSavedFingerprintSet(): Promise<Set<string>> {
   const set = new Set<string>();
-  for (const row of listSavedIdeas()) {
+  for (const row of await listSavedIdeas()) {
     set.add(ideaFingerprint(row.accountName, row.idea));
   }
   return set;
 }
 
-function writeAll(items: SavedPostIdea[]) {
+async function writeAll(items: SavedPostIdea[]) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    await setKvValue(STORAGE_KEY, JSON.stringify(items));
+    emitStorageChange("saved-content-lab-ideas-changed");
   } catch {
     // quota / private mode
   }
 }
 
-export function addSavedIdea(
+export async function addSavedIdea(
   accountName: string,
   idea: ContentLabIdea
-): { ok: true; duplicate?: false } | { ok: false; duplicate: true } {
+): Promise<{ ok: true; duplicate?: false } | { ok: false; duplicate: true }> {
   if (typeof window === "undefined") return { ok: false, duplicate: true };
   const fp = ideaFingerprint(accountName, idea);
-  const existing = listSavedIdeas();
+  const existing = await listSavedIdeas();
   if (existing.some((row) => ideaFingerprint(row.accountName, row.idea) === fp)) {
     return { ok: false, duplicate: true };
   }
@@ -74,12 +76,12 @@ export function addSavedIdea(
     accountName: accountName.trim(),
     idea,
   };
-  writeAll([row, ...existing]);
+  await writeAll([row, ...existing]);
   return { ok: true };
 }
 
-export function removeSavedIdea(id: string): void {
+export async function removeSavedIdea(id: string): Promise<void> {
   if (typeof window === "undefined") return;
-  const next = listSavedIdeas().filter((row) => row.id !== id);
-  writeAll(next);
+  const next = (await listSavedIdeas()).filter((row) => row.id !== id);
+  await writeAll(next);
 }

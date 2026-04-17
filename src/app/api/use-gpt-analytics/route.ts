@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GptAnalytics } from "../../analytics/[accountName]/data.mock";
 
 export async function POST(req: NextRequest) {
-  const apiKey = "AIzaSyBqjMYPzQNh3Bw2o5KS48c9KIxnUWBrvak";
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? process.env.GEMINI_API_KEY ?? "";
 
   if (!apiKey) {
     return NextResponse.json(

@@ -1,5 +1,6 @@
 // pages/about.tsx
 import React from "react";
+import Image from "next/image";
 
 const GPT_PROMPTS = [
   {
@@ -83,6 +84,8 @@ export default function About(): JSX.Element {
                 src="/feed.jpg"
                 alt="BrandGram Instagram preview"
                 className="w-full h-106 object-cover"
+                width={1200}
+                height={1600}
               />
               </div>
             </div>

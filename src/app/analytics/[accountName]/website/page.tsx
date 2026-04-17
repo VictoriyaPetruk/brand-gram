@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { BusinessDiscovery, LinkItem, mapBusinessDiscoveryToRequestGpt, MediaItem, SlideFlow, WebSiteResponseGpt } from "../data.mock";
 import UseGptSlides from "../useGptSlides";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -68,7 +69,7 @@ export default function ProfilePage({ params }: PageProps) {
     if (resolvedParams?.accountName) {
       fetchData(); 
     }
-  }, [username]);
+  }, [resolvedParams.accountName, router, username]);
 
   const linkClass =
     "bg-card text-foreground font-semibold py-4 rounded-full text-center border border-dashed border-border shadow-soft hover:shadow-md hover:scale-[1.02] transform transition text-lg";
@@ -119,10 +120,13 @@ export default function ProfilePage({ params }: PageProps) {
       }`}
     >
       {post && (
-        <img
+        <Image
           src={post.media_url}
           alt={`Post ${i}`}
           className={picCoverClass}
+          width={1200}
+          height={1200}
+          unoptimized
         />
       )}
       <div className="w-full md:w-1/2">
